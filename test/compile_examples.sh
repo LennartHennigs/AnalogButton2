@@ -36,7 +36,7 @@ TOTAL_TESTS=0
 PASSED_TESTS=0
 FAILED_TESTS=0
 
-EXAMPLES=($(find $EXAMPLES_DIR -name "*.ino" -exec dirname {} \; | sort | uniq))
+EXAMPLES=()
 
 print_status() {
     local status=$1
@@ -52,6 +52,8 @@ print_status() {
 #######################################################################
 # COMPILATION
 #######################################################################
+
+show_error_tail() { tail -15 "$1" | sed 's/^/     /'; }
 
 test_compilation() {
     local platform_fqbn=$1
@@ -78,6 +80,11 @@ test_compilation() {
             # y0() Bessel-function name clash introduced in Arduino ESP32 3.x.
             esp32dev)       platform_pkg="espressif32@^6.9.0" ;;
             nanoatmega328)  platform_pkg="atmelavr" ;;
+            *)
+                print_status "ERROR" "No platform_pkg mapping for pio_env '$pio_env' — add it to the case statement"
+                FAILED_TESTS=$((FAILED_TESTS + 1))
+                return 1
+                ;;
         esac
 
         # Build a proper PlatformIO project in a temp dir so that pio run
@@ -114,26 +121,29 @@ EOF
             echo -e "${RED}[FAIL]${NC}"
             FAILED_TESTS=$((FAILED_TESTS + 1))
             echo -e "    ${RED}Error details:${NC}"
-            tail -15 "$tmp_out" | sed 's/^/     /'
+            show_error_tail "$tmp_out"
             echo ""
             rm -rf "$tmp_proj" "$tmp_out"
             return 1
         fi
     else
-        local tmp_out
+        local tmp_out tmp_build_dir
         tmp_out=$(mktemp)
-        if arduino-cli compile --fqbn "$platform_fqbn" "$ino_file" --output-dir "/tmp/arduino-build-$example_name-$(date +%s)" > "$tmp_out" 2>&1; then
+        tmp_build_dir=$(mktemp -d /tmp/arduino-build-XXXXXX)
+        if arduino-cli compile --fqbn "$platform_fqbn" "$ino_file" --output-dir "$tmp_build_dir" > "$tmp_out" 2>&1; then
             echo -e "${GREEN}[PASS]${NC}"
             PASSED_TESTS=$((PASSED_TESTS + 1))
             rm -f "$tmp_out"
+            rm -rf "$tmp_build_dir"
             return 0
         else
             echo -e "${RED}[FAIL]${NC}"
             FAILED_TESTS=$((FAILED_TESTS + 1))
             echo -e "    ${RED}Error details:${NC}"
-            tail -15 "$tmp_out" | sed 's/^/     /'
+            show_error_tail "$tmp_out"
             echo ""
             rm -f "$tmp_out"
+            rm -rf "$tmp_build_dir"
             return 1
         fi
     fi
@@ -156,19 +166,18 @@ check_prerequisites() {
         print_status "SUCCESS" "PlatformIO found: $(pio --version | head -1)"
 
         # esptool requires 'intelhex' but PlatformIO's bundled esptool doesn't
-        # always install it. Read pio's shebang to find the exact Python that
-        # PlatformIO uses (guessing venv paths is unreliable across installs).
-        local pio_python
-        pio_python=$(head -1 "$(command -v pio)" 2>/dev/null | sed 's/^#!//' | tr -d '[:space:]')
+        # always install it. PlatformIO always creates its own venv at
+        # ~/.platformio/penv/ — that is the Python esptool runs under.
+        local pio_python="$HOME/.platformio/penv/bin/python3"
         if [[ -x "$pio_python" ]]; then
             if ! "$pio_python" -c "import intelhex" 2>/dev/null; then
-                print_status "WARNING" "Installing missing 'intelhex' into PlatformIO Python..."
+                print_status "WARNING" "Installing missing 'intelhex' into PlatformIO venv..."
                 "$pio_python" -m pip install intelhex -q \
                     && print_status "SUCCESS" "intelhex installed" \
                     || print_status "WARNING" "Could not install intelhex; ESP builds may fail"
             fi
         else
-            print_status "WARNING" "Could not determine PlatformIO Python (pio shebang: '$pio_python'); ESP builds may fail"
+            print_status "WARNING" "PlatformIO venv not found at $pio_python; ESP builds may fail if intelhex is missing"
         fi
     else
         if ! command -v arduino-cli &> /dev/null; then
@@ -323,6 +332,7 @@ main() {
     done
 
     cd "$(dirname "$0")"
+    mapfile -t EXAMPLES < <(find "$EXAMPLES_DIR" -name "*.ino" -exec dirname {} \; | sort -u)
 
     print_status "INFO" "Using build tool: $use_tool"
     [[ -n "$platform" ]] && print_status "INFO" "Testing selected platform: $platform"
