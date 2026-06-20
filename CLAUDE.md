@@ -1,0 +1,63 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+Arduino library for reading multiple buttons wired to a single analog pin. Each button produces a distinct analog voltage level; the library maps those readings to named button objects and fires callbacks on press, release, and click events.
+
+## Architecture
+
+The library has one class: **`AnalogButtons`** (`src/AnalogButtons.h/.cpp`). It depends on the [Button2](https://github.com/LennartHennigs/Button2) library for all button event handling.
+
+Internally, `AnalogButtons` owns a fixed-size array of up to `ABS_MAX_BUTTONS` (10) real `Button2` instances. Each instance is created with `BTN_VIRTUAL_PIN` and a lambda state function that returns the button's current `states[i]` byte (`LOW` = pressed, `HIGH` = released). `AnalogButtons::loop()` reads the analog pin once per call, updates `states[]` by matching the reading to each button's registered value within `ABS_VALUE_RANGE` (±10), then calls `button.loop()` on every instance — which drives Button2's full state machine (debounce, click/double-click/long-press detection, callbacks).
+
+`add()` returns a `Button2&`, giving callers direct access to the full Button2 API per button. String labels are stored in a parallel `ids[]` array and attached to each Button2 instance via `setContext()`; `getId(Button2&)` retrieves them in callbacks.
+
+Key design decisions:
+- All event logic (debounce, timing, multi-click) lives in Button2 — this library only handles analog multiplexing.
+- In `add()`, `setButtonStateFunction` must be called **before** `begin()` so that Button2's initial `_getState()` call inside `begin()` reads `HIGH` (released) via our function rather than `digitalRead(BTN_VIRTUAL_PIN)`, which returns `LOW` (pressed) in EpoxyDuino and causes spurious press/release events.
+- `show_unknown` mode prints unrecognised readings to `Serial` — useful for calibrating button values.
+- Button values and analog readings are `uint16_t`, covering the full 0–1023 range returned by `analogRead()`.
+
+## Development
+
+### Unit tests (no hardware required)
+
+Tests use [EpoxyDuino](https://github.com/bxparks/EpoxyDuino) + [AUnit](https://github.com/bxparks/AUnit) and run natively via PlatformIO:
+
+```bash
+# Run all suites
+pio test -e epoxy-esp8266 -v
+
+# Run one suite
+pio test -e test_basics -v
+pio test -e test_matching -v
+pio test -e test_callbacks -v
+```
+
+The test helper injects a mock `analogRead` via `setAnalogReadFunction()` — this hook is also what makes the real library testable without hardware. See `test/shared/test_helpers.h`.
+
+### Example compilation check
+
+```bash
+cd test
+./compile_examples.sh              # all platforms via PlatformIO
+./compile_examples.sh esp32        # ESP32 only
+./compile_examples.sh --tool=arduino-cli  # use arduino-cli instead
+```
+
+### Upload to hardware
+
+```bash
+# Compile and upload (adjust board/port as needed)
+arduino-cli compile --fqbn esp8266:esp8266:d1_mini examples/SimpleExample/SimpleExample.ino
+arduino-cli upload -p /dev/cu.usbmodem* --fqbn esp8266:esp8266:d1_mini examples/SimpleExample/SimpleExample.ino
+arduino-cli monitor -p /dev/cu.usbmodem* --config baudrate=9600
+```
+
+When calibrating button values, construct `AnalogButtons` with `show_unknown = true` — it prints raw ADC readings for any unrecognised presses to Serial.
+
+## Library Metadata
+
+`library.properties` controls Arduino Library Manager indexing. Fields `sentence` and `paragraph` are currently placeholder (`...`) and should be filled before publishing. `category` is set to `Communication` but should likely be `Signal Input/Output`.

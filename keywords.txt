@@ -1,0 +1,11 @@
+AnalogButtons	KEYWORD1
+
+add	KEYWORD2
+getId	KEYWORD2
+setGlobalClickHandler	KEYWORD2
+setGlobalPressedHandler	KEYWORD2
+setGlobalReleasedHandler	KEYWORD2
+loop	KEYWORD2
+
+ABS_VALUE_RANGE	LITERAL1
+ABS_MAX_BUTTONS	LITERAL1
