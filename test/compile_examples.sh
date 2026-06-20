@@ -73,11 +73,15 @@ test_compilation() {
         local platform_pkg=""
         case "$pio_env" in
             d1_mini)              platform_pkg="espressif8266" ;;
-            m5stack-core-esp32)   platform_pkg="espressif32" ;;
+            # Pin espressif32 to 6.x (Arduino ESP32 2.x / IDF 4.x) to avoid the
+            # y0() Bessel-function name clash introduced in Arduino ESP32 3.x.
+            m5stack-core-esp32)   platform_pkg="espressif32@^6.9.0" ;;
             nanoatmega328)        platform_pkg="atmelavr" ;;
         esac
 
         local temp_ini="$example_path/platformio_temp.ini"
+        local tmp_out
+        tmp_out=$(mktemp)
         cat > "$temp_ini" << EOF
 [env:test]
 platform = $platform_pkg
@@ -87,31 +91,35 @@ lib_deps =
     https://github.com/LennartHennigs/Button2.git
 EOF
 
-        if (cd "$example_path" && pio ci --project-conf="platformio_temp.ini" --lib="../../" "$example_name.ino" > /dev/null 2>&1); then
+        if (cd "$example_path" && pio ci --project-conf="platformio_temp.ini" --lib="../../" "$example_name.ino" > "$tmp_out" 2>&1); then
             echo -e "${GREEN}[PASS]${NC}"
             PASSED_TESTS=$((PASSED_TESTS + 1))
-            rm -f "$temp_ini"
+            rm -f "$temp_ini" "$tmp_out"
             return 0
         else
             echo -e "${RED}[FAIL]${NC}"
             FAILED_TESTS=$((FAILED_TESTS + 1))
             echo -e "    ${RED}Error details:${NC}"
-            (cd "$example_path" && pio ci --project-conf="platformio_temp.ini" --lib="../../" "$example_name.ino" 2>&1 | tail -5 | sed 's/^/     /')
+            tail -15 "$tmp_out" | sed 's/^/     /'
             echo ""
-            rm -f "$temp_ini"
+            rm -f "$temp_ini" "$tmp_out"
             return 1
         fi
     else
-        if arduino-cli compile --fqbn "$platform_fqbn" "$ino_file" --output-dir "/tmp/arduino-build-$example_name-$(date +%s)" > /dev/null 2>&1; then
+        local tmp_out
+        tmp_out=$(mktemp)
+        if arduino-cli compile --fqbn "$platform_fqbn" "$ino_file" --output-dir "/tmp/arduino-build-$example_name-$(date +%s)" > "$tmp_out" 2>&1; then
             echo -e "${GREEN}[PASS]${NC}"
             PASSED_TESTS=$((PASSED_TESTS + 1))
+            rm -f "$tmp_out"
             return 0
         else
             echo -e "${RED}[FAIL]${NC}"
             FAILED_TESTS=$((FAILED_TESTS + 1))
             echo -e "    ${RED}Error details:${NC}"
-            arduino-cli compile --fqbn "$platform_fqbn" "$ino_file" 2>&1 | tail -5 | sed 's/^/     /'
+            tail -15 "$tmp_out" | sed 's/^/     /'
             echo ""
+            rm -f "$tmp_out"
             return 1
         fi
     fi
