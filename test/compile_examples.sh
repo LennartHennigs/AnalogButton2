@@ -79,22 +79,35 @@ test_compilation() {
             nanoatmega328)        platform_pkg="atmelavr" ;;
         esac
 
-        local temp_ini="$example_path/platformio_temp.ini"
+        # Build a proper PlatformIO project in a temp dir so that pio run
+        # (not pio ci) handles .ino → Arduino preprocessing correctly.
+        # pio ci with --project-conf skips the Arduino framework includes on AVR,
+        # causing symbols like A0 to be undefined.
+        local lib_root
+        lib_root=$(cd "$example_path/../.." && pwd)
+
+        local tmp_proj
+        tmp_proj=$(mktemp -d)
         local tmp_out
         tmp_out=$(mktemp)
-        cat > "$temp_ini" << EOF
+
+        mkdir -p "$tmp_proj/src"
+        cp "$ino_file" "$tmp_proj/src/"
+
+        cat > "$tmp_proj/platformio.ini" << EOF
 [env:test]
 platform = $platform_pkg
 board = $pio_env
 framework = arduino
+lib_extra_dirs = $lib_root
 lib_deps =
     https://github.com/LennartHennigs/Button2.git
 EOF
 
-        if (cd "$example_path" && pio ci --project-conf="platformio_temp.ini" --lib="../../" "$example_name.ino" > "$tmp_out" 2>&1); then
+        if (cd "$tmp_proj" && pio run -e test > "$tmp_out" 2>&1); then
             echo -e "${GREEN}[PASS]${NC}"
             PASSED_TESTS=$((PASSED_TESTS + 1))
-            rm -f "$temp_ini" "$tmp_out"
+            rm -rf "$tmp_proj" "$tmp_out"
             return 0
         else
             echo -e "${RED}[FAIL]${NC}"
@@ -102,7 +115,7 @@ EOF
             echo -e "    ${RED}Error details:${NC}"
             tail -15 "$tmp_out" | sed 's/^/     /'
             echo ""
-            rm -f "$temp_ini" "$tmp_out"
+            rm -rf "$tmp_proj" "$tmp_out"
             return 1
         fi
     else
@@ -140,6 +153,16 @@ check_prerequisites() {
             exit 1
         fi
         print_status "SUCCESS" "PlatformIO found: $(pio --version | head -1)"
+
+        # esptool (used by ESP8266/ESP32 platforms) requires the 'intelhex' Python
+        # module. PlatformIO bundles esptool but not all its pip dependencies.
+        local pio_python="$HOME/.platformio/penv/bin/python"
+        if [[ -x "$pio_python" ]] && ! "$pio_python" -c "import intelhex" 2>/dev/null; then
+            print_status "WARNING" "Missing 'intelhex' module — installing into PlatformIO venv..."
+            "$HOME/.platformio/penv/bin/pip" install intelhex -q \
+                && print_status "SUCCESS" "intelhex installed" \
+                || print_status "WARNING" "Could not install intelhex; ESP builds may fail"
+        fi
     else
         if ! command -v arduino-cli &> /dev/null; then
             print_status "ERROR" "arduino-cli is not installed or not in PATH"
