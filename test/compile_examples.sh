@@ -14,7 +14,8 @@
 # Format: "FQBN|Display Name|PIO Board ID"
 declare -a PLATFORMS=(
     "esp8266:esp8266:d1_mini|Wemos D1 Mini (ESP8266)|d1_mini"
-    "esp32:esp32:m5stack_core2|M5Stack Core2 (ESP32)|m5stack-core-esp32"
+    # esp32dev defines A0=GPIO36; M5Stack Core2 uses G0/G1 aliases instead.
+    "esp32:esp32:esp32dev|ESP32 Dev Module (ESP32)|esp32dev"
     "arduino:avr:nano|Arduino Nano (AVR)|nanoatmega328"
 )
 
@@ -72,11 +73,11 @@ test_compilation() {
     if [[ "$use_tool" == "pio" ]]; then
         local platform_pkg=""
         case "$pio_env" in
-            d1_mini)              platform_pkg="espressif8266" ;;
+            d1_mini)        platform_pkg="espressif8266" ;;
             # Pin espressif32 to 6.x (Arduino ESP32 2.x / IDF 4.x) to avoid the
             # y0() Bessel-function name clash introduced in Arduino ESP32 3.x.
-            m5stack-core-esp32)   platform_pkg="espressif32@^6.9.0" ;;
-            nanoatmega328)        platform_pkg="atmelavr" ;;
+            esp32dev)       platform_pkg="espressif32@^6.9.0" ;;
+            nanoatmega328)  platform_pkg="atmelavr" ;;
         esac
 
         # Build a proper PlatformIO project in a temp dir so that pio run
@@ -154,14 +155,20 @@ check_prerequisites() {
         fi
         print_status "SUCCESS" "PlatformIO found: $(pio --version | head -1)"
 
-        # esptool (used by ESP8266/ESP32 platforms) requires the 'intelhex' Python
-        # module. PlatformIO bundles esptool but not all its pip dependencies.
-        local pio_python="$HOME/.platformio/penv/bin/python"
-        if [[ -x "$pio_python" ]] && ! "$pio_python" -c "import intelhex" 2>/dev/null; then
-            print_status "WARNING" "Missing 'intelhex' module — installing into PlatformIO venv..."
-            "$HOME/.platformio/penv/bin/pip" install intelhex -q \
-                && print_status "SUCCESS" "intelhex installed" \
-                || print_status "WARNING" "Could not install intelhex; ESP builds may fail"
+        # esptool requires the 'intelhex' pip package but PlatformIO's bundled
+        # esptool doesn't always install it. Find pip in PlatformIO's venv and
+        # ensure intelhex is present (pip install is a no-op if already installed).
+        local pio_pip=""
+        for _p in "$HOME/.platformio/penv/bin/pip3" "$HOME/.platformio/penv/bin/pip"; do
+            [[ -x "$_p" ]] && { pio_pip="$_p"; break; }
+        done
+        if [[ -n "$pio_pip" ]]; then
+            if ! "$pio_pip" show intelhex &>/dev/null; then
+                print_status "WARNING" "Installing missing 'intelhex' into PlatformIO venv..."
+                "$pio_pip" install intelhex -q \
+                    && print_status "SUCCESS" "intelhex installed" \
+                    || print_status "WARNING" "Could not install intelhex; ESP builds may fail"
+            fi
         fi
     else
         if ! command -v arduino-cli &> /dev/null; then
@@ -275,8 +282,8 @@ show_help() {
     echo "  --tool=TOOL          Use 'pio' (default) or 'arduino-cli'"
     echo ""
     echo "Platform (optional, filters to one platform):"
-    echo "  - Board name:    d1_mini, m5stack_core2, nano"
-    echo "  - Display name:  Wemos, M5Stack, Nano"
+    echo "  - Board name:    d1_mini, esp32dev, nano"
+    echo "  - Display name:  Wemos, ESP32, Nano"
     echo "  - FQBN fragment: esp8266, esp32, avr"
     echo ""
     echo "Examples:"
