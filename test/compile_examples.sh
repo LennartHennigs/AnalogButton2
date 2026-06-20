@@ -155,20 +155,20 @@ check_prerequisites() {
         fi
         print_status "SUCCESS" "PlatformIO found: $(pio --version | head -1)"
 
-        # esptool requires the 'intelhex' pip package but PlatformIO's bundled
-        # esptool doesn't always install it. Find pip in PlatformIO's venv and
-        # ensure intelhex is present (pip install is a no-op if already installed).
-        local pio_pip=""
-        for _p in "$HOME/.platformio/penv/bin/pip3" "$HOME/.platformio/penv/bin/pip"; do
-            [[ -x "$_p" ]] && { pio_pip="$_p"; break; }
-        done
-        if [[ -n "$pio_pip" ]]; then
-            if ! "$pio_pip" show intelhex &>/dev/null; then
-                print_status "WARNING" "Installing missing 'intelhex' into PlatformIO venv..."
-                "$pio_pip" install intelhex -q \
+        # esptool requires 'intelhex' but PlatformIO's bundled esptool doesn't
+        # always install it. Read pio's shebang to find the exact Python that
+        # PlatformIO uses (guessing venv paths is unreliable across installs).
+        local pio_python
+        pio_python=$(head -1 "$(command -v pio)" 2>/dev/null | sed 's/^#!//' | tr -d '[:space:]')
+        if [[ -x "$pio_python" ]]; then
+            if ! "$pio_python" -c "import intelhex" 2>/dev/null; then
+                print_status "WARNING" "Installing missing 'intelhex' into PlatformIO Python..."
+                "$pio_python" -m pip install intelhex -q \
                     && print_status "SUCCESS" "intelhex installed" \
                     || print_status "WARNING" "Could not install intelhex; ESP builds may fail"
             fi
+        else
+            print_status "WARNING" "Could not determine PlatformIO Python (pio shebang: '$pio_python'); ESP builds may fail"
         fi
     else
         if ! command -v arduino-cli &> /dev/null; then
