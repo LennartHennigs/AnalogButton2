@@ -58,6 +58,13 @@ arduino-cli monitor -p /dev/cu.usbmodem* --config baudrate=9600
 
 When calibrating button values, construct `AnalogButtons` with `show_unknown = true` — it prints raw ADC readings for any unrecognised presses to Serial.
 
-## Library Metadata
+## Repository
 
-`library.properties` controls Arduino Library Manager indexing. Fields `sentence` and `paragraph` are currently placeholder (`...`) and should be filled before publishing. `category` is set to `Communication` but should likely be `Signal Input/Output`.
+GitHub: https://github.com/LennartHennigs/AnalogButton2 (repo name differs from the library name `AnalogButtons`).
+
+### compile_examples.sh notes
+
+- **Must be run from `test/`** — the script resolves `../examples` at load time; running it from the repo root (`bash test/compile_examples.sh`) finds no examples and exits with "No tests were executed!".
+- ESP32 test board is `esp32dev` (not `m5stack_core2`) — M5Stack Core2 uses `G0`/`G1` GPIO aliases and does not define `A0`.
+- `espressif32` platform is pinned to `^6.9.0` in the generated temp ini — Arduino ESP32 3.x (espressif32 ≥ 7.x) has a `y0()` Bessel-function conflict that breaks `Tone.cpp`.
+- If ESP builds fail with `No module named 'intelhex'`, the script auto-installs it into PlatformIO's Python on first run.
