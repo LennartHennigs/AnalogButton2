@@ -7,6 +7,8 @@ AnalogButton2
 
 Arduino Library to read multiple buttons wired to a single analog pin.
 
+If you find this library helpful please consider giving it a ⭐️ at [GitHub](https://github.com/LennartHennigs/AnalogButton2) and/or [buy me a ☕️](https://ko-fi.com/lennart0815).
+
 
 Description
 -----------
