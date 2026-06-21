@@ -5,6 +5,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- **Breaking:** `add()` now returns `Button2*` (pointer) instead of `Button2&` (reference).
+- Internal arrays (`Button2`, values, tolerances, ids, states) are now heap-allocated in the constructor rather than fixed-size class members. A `maxButtons` parameter (default 10) controls the allocation size, saving significant RAM when fewer buttons are used. On ESP32, a 4-button sketch uses ~54% less memory than before. Use `->` for chaining and check for `nullptr` on overflow. Returns `nullptr` when the 10-button limit is exceeded.
+- Tolerance comparison changed from `<` to `<=` — a reading at exactly `value ± tolerance` now matches (boundary is inclusive). Effective window is `2 × tolerance + 1` values wide.
+- `loop()` now uses first-registered-wins: when a reading falls within tolerance of more than one button, only the first registered match fires.
+- `show_unknown` now reports readings of 0 (previously suppressed, hiding buttons wired to GND).
+
+### Fixed
+
+- `reset()` now restores default debounce, long-click, and double-click timing across **all** button slots (not just previously registered ones), preventing stale timing from leaking into reused slots.
+
 ## [1.0.0] - 2026-06-21
 
 ### Changed

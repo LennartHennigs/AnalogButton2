@@ -1,7 +1,7 @@
 AnalogButton2
 =============
 
-* Author: Lennart Hennigs (https://www.lennarthennigs.de)
+* Author: Lennart Hennigs (<https://www.lennarthennigs.de>)
 * Copyright (C) 2017-2026 Lennart Hennigs.
 * Released under the MIT license.
 
@@ -9,13 +9,12 @@ Arduino Library to read multiple buttons wired to a single analog pin.
 
 If you find this library helpful please consider giving it a ⭐️ at [GitHub](https://github.com/LennartHennigs/AnalogButton2) and/or [buy me a ☕️](https://ko-fi.com/lennart0815).
 
-
 Description
 -----------
 
-Many button keyboards (e.g. LCD shield button rows) connect several buttons to one analog pin, each producing a distinct voltage level. `AnalogButton2` polls that pin in your `loop()`, identifies which button was pressed by matching the reading to a registered value within a configurable tolerance (±10), and delegates all event handling to [Button2](https://github.com/LennartHennigs/Button2) — giving you press, release, click, double-click, long-press, and retriggerable long-press for free.
+Many button keyboards (e.g. LCD shield button rows) connect several buttons to one analog pin, each producing a distinct voltage level. `AnalogButton2` polls that pin in your `loop()`, identifies which button was pressed by matching the reading to a registered value within a configurable tolerance (delta ≤ 10), and delegates all event handling to [Button2](https://github.com/LennartHennigs/Button2) — giving you press, release, click, double-click, long-press, and retriggerable long-press for free.
 
-Up to 10 buttons can be registered per pin. Analog readings cover the full 0–1023 range returned by `analogRead()`.
+Up to `maxButtons` buttons can be registered per pin (default 10, configurable in the constructor). Analog readings cover the full 0–1023 range returned by `analogRead()`.
 
 **Requires** the [Button2](https://github.com/LennartHennigs/Button2) library.
 
@@ -29,7 +28,9 @@ Not sure what value to use for a button? Construct `AnalogButton2` with `show_un
 AnalogButton2 btns(A0, true);
 ```
 
-Any unrecognised reading (non-zero) will be printed to `Serial`. Press each button and note the values, then register them with `add()`.
+`add()` returns `nullptr` when the array is full — always check before dereferencing if you register buttons conditionally.
+
+Any unrecognised reading will be printed to `Serial`. Press each button and note the values, then register them with `add()`.
 
 
 Usage
@@ -44,9 +45,9 @@ AnalogButton2 btns(A0);
 void setup() {
   Serial.begin(9600);
 
-  btns.add( 18, "LEFT").setClickHandler(clickHandler);
-  btns.add( 42, "CENTER").setClickHandler(clickHandler);
-  btns.add( 59, "RIGHT").setClickHandler(clickHandler);
+  btns.add( 18, "LEFT")->setClickHandler(clickHandler);
+  btns.add( 42, "CENTER")->setClickHandler(clickHandler);
+  btns.add( 59, "RIGHT")->setClickHandler(clickHandler);
 }
 
 void loop() {
@@ -62,7 +63,7 @@ void clickHandler(Button2& btn) {
 }
 ```
 
-`add()` returns a `Button2&`, so you can chain any Button2 handler directly on the returned reference:
+`add()` returns a `Button2*`, so you can chain any Button2 handler directly via `->`. Returns `nullptr` when `maxButtons` is reached — check before dereferencing if registering conditionally.
 
 | Handler | Fires when… |
 |---------|-------------|
@@ -78,7 +79,7 @@ void clickHandler(Button2& btn) {
 
 > **Tip:** Use `setTapHandler()` or `setLongClickDetectedHandler()` when you need immediate feedback. `setClickHandler()` waits briefly to confirm no double-click follows.
 
-For retriggerable long press, call `setLongClickDetectedRetriggerable(true)` on the returned `Button2&`; `getLongClickCount()` gives you the repeat count.
+For retriggerable long press, call `setLongClickDetectedRetriggerable(true)` on the returned `Button2*`; `getLongClickCount()` gives you the repeat count.
 
 You can also register a handler for all buttons at once:
 
@@ -92,9 +93,9 @@ Button2 defaults (in ms): debounce `50`, long-click `200`, double-click `300`. O
 
 ```cpp
 btns.add(42, "CENTER")
-    .setDoubleClickTime(400)
-    .setLongClickTime(500)
-    .setClickHandler(clickHandler);
+    ->setDoubleClickTime(400)
+    ->setLongClickTime(500)
+    ->setClickHandler(clickHandler);
 ```
 
 ### wasPressedFor()
@@ -107,12 +108,12 @@ API
 
 | Method | Description |
 |--------|-------------|
-| `AnalogButton2(byte pin, bool show_unknown = false, uint16_t tolerance = 10)` | Constructor. `tolerance` sets the default ADC match window (±value). |
-| `Button2& add(uint16_t value, String id = "", uint16_t tolerance = 0)` | Register a button. `tolerance = 0` inherits the constructor default. Returns `Button2&` for chaining. |
+| `AnalogButton2(byte pin, bool show_unknown = false, uint16_t tolerance = 10, byte maxButtons = 10)` | Constructor. `tolerance` sets the default ADC match window. `maxButtons` controls how many buttons can be registered and how much heap is allocated — defaults to 10. |
+| `Button2* add(uint16_t value, String id = "", uint16_t tolerance = 0)` | Register a button. `tolerance = 0` inherits the constructor default. Returns `Button2*` for chaining, or `nullptr` if the 10-button limit is reached. |
 | `String getId(Button2& btn)` | Retrieve the string label for a button inside a callback. |
 | `void reset()` | Clear all registered buttons; the object can be re-used with new `add()` calls. |
 | `byte getCount() const` | Number of currently registered buttons. |
-| `bool isFull() const` | `true` when the 10-button limit is reached. |
+| `bool isFull() const` | `true` when the `maxButtons` limit is reached. |
 | `void setAnalogReadFunction(f)` | Inject a custom ADC reader (used by the test suite; replaces `analogRead`). |
 | `void setGlobalChangedHandler(f)` | Set the same changed handler on all registered buttons. |
 | `void setGlobalPressedHandler(f)` | Set the same pressed handler on all registered buttons. |

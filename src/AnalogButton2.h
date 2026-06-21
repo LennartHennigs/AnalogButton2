@@ -18,18 +18,7 @@
 /* ----------------------------------------------------- */
 
 class AnalogButton2 {
-  private:
-    byte pin;
-    bool show_unknown = false;
-    uint16_t default_tolerance;
-
-    Button2  buttons[ABS_MAX_BUTTONS];
-    uint16_t values[ABS_MAX_BUTTONS];
-    uint16_t tolerances[ABS_MAX_BUTTONS];
-    String   ids[ABS_MAX_BUTTONS];
-    uint8_t  states[ABS_MAX_BUTTONS];
-    byte     btn_count = 0;
-
+  public:
 #ifdef BUTTON2_HAS_STD_FUNCTION
     typedef std::function<uint16_t(byte)> AnalogReadFunction;
     typedef std::function<void(Button2&)> CallbackFunction;
@@ -37,13 +26,32 @@ class AnalogButton2 {
     typedef uint16_t (*AnalogReadFunction)(byte);
     typedef void (*CallbackFunction)(Button2&);
 #endif
+
+  private:
+    byte pin;
+    bool show_unknown = false;
+    uint16_t default_tolerance;
+
+    Button2*  buttons    = nullptr;
+    uint16_t* values     = nullptr;
+    uint16_t* tolerances = nullptr;
+    String*   ids        = nullptr;
+    uint8_t*  states     = nullptr;
+    byte      max_buttons;
+    byte      btn_count = 0;
+
     AnalogReadFunction analog_read_fn = BUTTON2_NULL;
 
   public:
-    AnalogButton2(byte pin, bool show_unknown = false, uint16_t tolerance = ABS_VALUE_RANGE);
+    AnalogButton2(byte pin, bool show_unknown = false, uint16_t tolerance = ABS_VALUE_RANGE, byte maxButtons = ABS_MAX_BUTTONS);
+    ~AnalogButton2();
+    AnalogButton2(AnalogButton2&& other) noexcept;
+    AnalogButton2(const AnalogButton2&) = delete;
+    AnalogButton2& operator=(const AnalogButton2&) = delete;
+    AnalogButton2& operator=(AnalogButton2&&) = delete;
 
-    // tolerance = 0 inherits the constructor default
-    Button2& add(uint16_t value, String id = "", uint16_t tolerance = 0);
+    // Returns nullptr when maxButtons is exceeded
+    Button2* add(uint16_t value, String id = "", uint16_t tolerance = 0);
 
     String getId(Button2& btn);
 

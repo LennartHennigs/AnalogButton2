@@ -46,7 +46,7 @@ void resetCbVars() {
 test(test_callbacks, click_handler_fires) {
   resetCbVars();
   AnalogButton2 btns = createTestButtons();
-  btns.add(BTN_A_VALUE, "A").setClickHandler([](Button2& b) { cb_click = true; });
+  btns.add(BTN_A_VALUE, "A")->setClickHandler([](Button2& b) { cb_click = true; });
 
   clickAnalog(btns, BTN_A_VALUE);
   delay(BTN_DOUBLECLICK_MS);
@@ -60,7 +60,7 @@ test(test_callbacks, click_handler_fires) {
 test(test_callbacks, pressed_handler_fires) {
   resetCbVars();
   AnalogButton2 btns = createTestButtons();
-  btns.add(BTN_A_VALUE, "A").setPressedHandler([](Button2& b) { cb_pressed = true; });
+  btns.add(BTN_A_VALUE, "A")->setPressedHandler([](Button2& b) { cb_pressed = true; });
 
   pressAnalog(btns, BTN_A_VALUE, DEBOUNCE_MS);
 
@@ -73,7 +73,7 @@ test(test_callbacks, pressed_handler_fires) {
 test(test_callbacks, released_handler_fires) {
   resetCbVars();
   AnalogButton2 btns = createTestButtons();
-  btns.add(BTN_A_VALUE, "A").setReleasedHandler([](Button2& b) { cb_released = true; });
+  btns.add(BTN_A_VALUE, "A")->setReleasedHandler([](Button2& b) { cb_released = true; });
 
   clickAnalog(btns, BTN_A_VALUE);
 
@@ -85,7 +85,7 @@ test(test_callbacks, released_handler_fires) {
 test(test_callbacks, tap_handler_fires_immediately) {
   resetCbVars();
   AnalogButton2 btns = createTestButtons();
-  btns.add(BTN_A_VALUE, "A").setTapHandler([](Button2& b) { cb_tap = true; });
+  btns.add(BTN_A_VALUE, "A")->setTapHandler([](Button2& b) { cb_tap = true; });
 
   clickAnalog(btns, BTN_A_VALUE);
 
@@ -97,7 +97,7 @@ test(test_callbacks, tap_handler_fires_immediately) {
 test(test_callbacks, changed_handler_fires_on_press_and_release) {
   resetCbVars();
   AnalogButton2 btns = createTestButtons();
-  btns.add(BTN_A_VALUE, "A").setChangedHandler([](Button2& b) { cb_count++; });
+  btns.add(BTN_A_VALUE, "A")->setChangedHandler([](Button2& b) { cb_count++; });
 
   pressAnalog(btns, BTN_A_VALUE, DEBOUNCE_MS);
   releaseAnalog(btns);
@@ -221,7 +221,7 @@ test(test_callbacks, global_long_click_handler_fires_for_all_buttons) {
 test(test_callbacks, button2_double_click_works) {
   resetCbVars();
   AnalogButton2 btns = createTestButtons();
-  btns.add(BTN_A_VALUE, "A").setDoubleClickHandler([](Button2& b) { cb_double = true; });
+  btns.add(BTN_A_VALUE, "A")->setDoubleClickHandler([](Button2& b) { cb_double = true; });
 
   clickAnalog(btns, BTN_A_VALUE);
   clickAnalog(btns, BTN_A_VALUE);
@@ -236,7 +236,7 @@ test(test_callbacks, button2_double_click_works) {
 test(test_callbacks, button2_triple_click_works) {
   resetCbVars();
   AnalogButton2 btns = createTestButtons();
-  btns.add(BTN_A_VALUE, "A").setTripleClickHandler([](Button2& b) { cb_triple = true; });
+  btns.add(BTN_A_VALUE, "A")->setTripleClickHandler([](Button2& b) { cb_triple = true; });
 
   clickAnalog(btns, BTN_A_VALUE);
   clickAnalog(btns, BTN_A_VALUE);
@@ -252,7 +252,7 @@ test(test_callbacks, button2_triple_click_works) {
 test(test_callbacks, button2_long_click_works) {
   resetCbVars();
   AnalogButton2 btns = createTestButtons();
-  btns.add(BTN_A_VALUE, "A").setLongClickHandler([](Button2& b) { cb_long = true; });
+  btns.add(BTN_A_VALUE, "A")->setLongClickHandler([](Button2& b) { cb_long = true; });
 
   pressAnalog(btns, BTN_A_VALUE, BTN_LONGCLICK_MS + 20);
   releaseAnalog(btns);
@@ -268,7 +268,7 @@ test(test_callbacks, callback_receives_correct_button_reference) {
   resetCbVars();
   String captured_id = "";
   AnalogButton2 btns = createTestButtons();
-  btns.add(BTN_A_VALUE, "ALPHA").setClickHandler([&btns, &captured_id](Button2& b) {
+  btns.add(BTN_A_VALUE, "ALPHA")->setClickHandler([&btns, &captured_id](Button2& b) {
     captured_id = btns.getId(b);
   });
 

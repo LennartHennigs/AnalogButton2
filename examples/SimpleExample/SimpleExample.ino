@@ -14,11 +14,11 @@ void setup() {
   delay(100);
   Serial.println("\n\nAnalog Buttons Test\n");
 
-  btns.add( 18, "LEFT").setClickHandler(clickHandler);
-  btns.add( 42, "CENTER").setClickHandler(clickHandler);
-  btns.add( 59, "RIGHT").setClickHandler(clickHandler);
-  btns.add( 88, "BOTTOM").setClickHandler(clickHandler);
-  btns.add(182, "TOP").setClickHandler(clickHandler);
+  btns.add( 18, "LEFT")->setClickHandler(clickHandler);
+  btns.add( 42, "CENTER")->setClickHandler(clickHandler);
+  btns.add( 59, "RIGHT")->setClickHandler(clickHandler);
+  btns.add( 88, "BOTTOM")->setClickHandler(clickHandler);
+  btns.add(182, "TOP")->setClickHandler(clickHandler);
 }
 
 /* ----------------------------------------------------- */

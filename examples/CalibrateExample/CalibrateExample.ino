@@ -30,8 +30,8 @@ void setup() {
 
   // No buttons registered — every press prints an unknown reading.
   // Once you have the values, add them here and re-upload to verify:
-  //   btns.add(VALUE_A, "A").setClickHandler(clickHandler);
-  //   btns.add(VALUE_B, "B").setClickHandler(clickHandler);
+  //   btns.add(VALUE_A, "A")->setClickHandler(clickHandler);
+  //   btns.add(VALUE_B, "B")->setClickHandler(clickHandler);
 }
 
 /* ----------------------------------------------------- */

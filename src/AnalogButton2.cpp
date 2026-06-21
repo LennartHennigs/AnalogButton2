@@ -9,6 +9,7 @@
 // ESP8266 or ESP32 (which support std::function) for multiple instances.
 #ifndef BUTTON2_HAS_STD_FUNCTION
 #warning "AnalogButton2: AVR target detected — only one AnalogButton2 instance is supported per sketch."
+static_assert(ABS_MAX_BUTTONS <= 10, "AVR trampoline table has 10 entries — add matching _sfN functions before raising ABS_MAX_BUTTONS above 10.");
 static uint8_t* _g_states = nullptr;
 static uint8_t _sf0() { return _g_states[0]; }
 static uint8_t _sf1() { return _g_states[1]; }
@@ -28,11 +29,44 @@ static _SlotFn _g_fns[ABS_MAX_BUTTONS] = {
 
 /* ----------------------------------------------------- */
 
-AnalogButton2::AnalogButton2(byte pin, bool show_unknown, uint16_t tolerance) {
+AnalogButton2::AnalogButton2(byte pin, bool show_unknown, uint16_t tolerance, byte maxButtons) {
   this->pin = pin;
   this->show_unknown = show_unknown;
   this->default_tolerance = tolerance;
-  memset(states, HIGH, sizeof(states));
+#ifndef BUTTON2_HAS_STD_FUNCTION
+  if (maxButtons > 10) maxButtons = 10;
+#endif
+  this->max_buttons = maxButtons;
+  buttons    = new Button2[max_buttons];
+  values     = new uint16_t[max_buttons];
+  tolerances = new uint16_t[max_buttons];
+  ids        = new String[max_buttons];
+  states     = new uint8_t[max_buttons];
+  for (byte i = 0; i < max_buttons; i++) states[i] = HIGH;
+#ifndef BUTTON2_HAS_STD_FUNCTION
+  _g_states = states;
+#endif
+}
+
+AnalogButton2::~AnalogButton2() {
+  delete[] buttons;
+  delete[] values;
+  delete[] tolerances;
+  delete[] ids;
+  delete[] states;
+}
+
+AnalogButton2::AnalogButton2(AnalogButton2&& other) noexcept
+  : pin(other.pin), show_unknown(other.show_unknown), default_tolerance(other.default_tolerance),
+    buttons(other.buttons), values(other.values), tolerances(other.tolerances),
+    ids(other.ids), states(other.states), max_buttons(other.max_buttons),
+    btn_count(other.btn_count), analog_read_fn(other.analog_read_fn)
+{
+  other.buttons    = nullptr;
+  other.values     = nullptr;
+  other.tolerances = nullptr;
+  other.ids        = nullptr;
+  other.states     = nullptr;
 #ifndef BUTTON2_HAS_STD_FUNCTION
   _g_states = states;
 #endif
@@ -40,8 +74,8 @@ AnalogButton2::AnalogButton2(byte pin, bool show_unknown, uint16_t tolerance) {
 
 /* ----------------------------------------------------- */
 
-Button2& AnalogButton2::add(uint16_t value, String id, uint16_t tolerance) {
-  if (btn_count >= ABS_MAX_BUTTONS) return buttons[ABS_MAX_BUTTONS - 1];
+Button2* AnalogButton2::add(uint16_t value, String id, uint16_t tolerance) {
+  if (btn_count >= max_buttons) return nullptr;
 
   byte i = btn_count++;
   values[i]     = value;
@@ -61,7 +95,7 @@ Button2& AnalogButton2::add(uint16_t value, String id, uint16_t tolerance) {
   buttons[i].begin(BTN_VIRTUAL_PIN);
   buttons[i].setContext((void*)&ids[i]);
 
-  return buttons[i];
+  return &buttons[i];
 }
 
 /* ----------------------------------------------------- */
@@ -73,15 +107,18 @@ String AnalogButton2::getId(Button2& btn) {
 /* ----------------------------------------------------- */
 
 void AnalogButton2::reset() {
-  for (byte i = 0; i < btn_count; i++) {
+  for (byte i = 0; i < max_buttons; i++) {
     buttons[i].reset();
+    buttons[i].setDebounceTime(BTN_DEBOUNCE_MS);
+    buttons[i].setLongClickTime(BTN_LONGCLICK_MS);
+    buttons[i].setDoubleClickTime(BTN_DOUBLECLICK_MS);
     states[i] = HIGH;
   }
   btn_count = 0;
 }
 
 byte AnalogButton2::getCount() const { return btn_count; }
-bool AnalogButton2::isFull()  const  { return btn_count >= ABS_MAX_BUTTONS; }
+bool AnalogButton2::isFull()  const  { return btn_count >= max_buttons; }
 
 /* ----------------------------------------------------- */
 
@@ -133,16 +170,16 @@ void AnalogButton2::loop() {
   uint16_t reading = analog_read_fn ? analog_read_fn(pin) : (uint16_t)analogRead(pin);
   bool found = false;
 
+  for (byte i = 0; i < btn_count; i++) states[i] = HIGH;
   for (byte i = 0; i < btn_count; i++) {
-    if (abs((int32_t)reading - (int32_t)values[i]) < tolerances[i]) {
+    if (abs((int32_t)reading - (int32_t)values[i]) <= tolerances[i]) {
       states[i] = LOW;
       found = true;
-    } else {
-      states[i] = HIGH;
+      break;
     }
   }
 
-  if (show_unknown && !found && reading > 0) {
+  if (show_unknown && !found) {
     Serial.print("unknown reading: ");
     Serial.println(reading);
   }

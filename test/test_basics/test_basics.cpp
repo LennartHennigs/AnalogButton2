@@ -19,9 +19,9 @@ using namespace aunit;
 
 test(test_basics, add_returns_button2_reference) {
   AnalogButton2 btns = createTestButtons();
-  Button2& b = btns.add(BTN_A_VALUE, "A");
+  Button2* b = btns.add(BTN_A_VALUE, "A");
   // BTN_VIRTUAL_PIN = 254
-  assertEqual(b.getPin(), (uint8_t)BTN_VIRTUAL_PIN);
+  assertEqual(b->getPin(), (uint8_t)BTN_VIRTUAL_PIN);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -36,16 +36,16 @@ test(test_basics, get_id_returns_label) {
   btns.loop();
   // We don't have a direct handle but getId is tested via callback below;
   // here just verify no crash and label retrieval via add reference.
-  Button2& b = btns.add(BTN_C_VALUE, "UP");
-  assertEqual(btns.getId(b), String("UP"));
+  Button2* b = btns.add(BTN_C_VALUE, "UP");
+  assertEqual(btns.getId(*b), String("UP"));
 }
 
 /////////////////////////////////////////////////////////////////
 
 test(test_basics, get_id_falls_back_to_value_string) {
   AnalogButton2 btns = createTestButtons();
-  Button2& b = btns.add(BTN_A_VALUE);
-  assertEqual(btns.getId(b), String(BTN_A_VALUE));
+  Button2* b = btns.add(BTN_A_VALUE);
+  assertEqual(btns.getId(*b), String(BTN_A_VALUE));
 }
 
 /////////////////////////////////////////////////////////////////
@@ -127,7 +127,7 @@ test(test_basics, add_after_reset_works) {
   AnalogButton2 btns = createTestButtons();
   btns.add(BTN_A_VALUE, "A");
   btns.reset();
-  btns.add(BTN_B_VALUE, "B").setClickHandler([](Button2& b) { fired = true; });
+  btns.add(BTN_B_VALUE, "B")->setClickHandler([](Button2& b) { fired = true; });
 
   clickAnalog(btns, BTN_B_VALUE);
   delay(BTN_DOUBLECLICK_MS);
