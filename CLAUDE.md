@@ -8,9 +8,9 @@ Arduino library for reading multiple buttons wired to a single analog pin. Each 
 
 ## Architecture
 
-The library has one class: **`AnalogButtons`** (`src/AnalogButton2.h/.cpp`). It depends on the [Button2](https://github.com/LennartHennigs/Button2) library for all button event handling.
+The library has one class: **`AnalogButton2`** (`src/AnalogButton2.h/.cpp`). It depends on the [Button2](https://github.com/LennartHennigs/Button2) library for all button event handling.
 
-Internally, `AnalogButtons` owns a fixed-size array of up to `ABS_MAX_BUTTONS` (10) real `Button2` instances. Each instance is created with `BTN_VIRTUAL_PIN` and a lambda state function that returns the button's current `states[i]` byte (`LOW` = pressed, `HIGH` = released). `AnalogButtons::loop()` reads the analog pin once per call, updates `states[]` by matching the reading to each button's registered value within `ABS_VALUE_RANGE` (±10), then calls `button.loop()` on every instance — which drives Button2's full state machine (debounce, click/double-click/long-press detection, callbacks).
+Internally, `AnalogButton2` owns a fixed-size array of up to `ABS_MAX_BUTTONS` (10) real `Button2` instances. Each instance is created with `BTN_VIRTUAL_PIN` and a lambda state function that returns the button's current `states[i]` byte (`LOW` = pressed, `HIGH` = released). `AnalogButton2::loop()` reads the analog pin once per call, updates `states[]` by matching the reading to each button's registered value within `ABS_VALUE_RANGE` (±10), then calls `button.loop()` on every instance — which drives Button2's full state machine (debounce, click/double-click/long-press detection, callbacks).
 
 `add()` returns a `Button2&`, giving callers direct access to the full Button2 API per button. String labels are stored in a parallel `ids[]` array and attached to each Button2 instance via `setContext()`; `getId(Button2&)` retrieves them in callbacks.
 
@@ -19,7 +19,7 @@ Key design decisions:
 - In `add()`, `setButtonStateFunction` must be called **before** `begin()` so that Button2's initial `_getState()` call inside `begin()` reads `HIGH` (released) via our function rather than `digitalRead(BTN_VIRTUAL_PIN)`, which returns `LOW` (pressed) in EpoxyDuino and causes spurious press/release events.
 - `show_unknown` mode prints unrecognised readings to `Serial` — useful for calibrating button values.
 - Button values and analog readings are `uint16_t`, covering the full 0–1023 range returned by `analogRead()`.
-- On AVR (no `std::function`), only one `AnalogButtons` instance is supported — a second instance overwrites the shared `_g_states` array and breaks the first. ESP8266/ESP32 support multiple instances via capturing lambdas.
+- On AVR (no `std::function`), only one `AnalogButton2` instance is supported — a second instance overwrites the shared `_g_states` array and breaks the first. ESP8266/ESP32 support multiple instances via capturing lambdas.
 - `setGlobalClickHandler()`, `setGlobalPressedHandler()`, `setGlobalReleasedHandler()` — apply a single callback to all registered buttons at once.
 
 ## Development
@@ -61,11 +61,16 @@ arduino-cli upload -p /dev/cu.usbmodem* --fqbn esp8266:esp8266:d1_mini examples/
 arduino-cli monitor -p /dev/cu.usbmodem* --config baudrate=9600
 ```
 
-When calibrating button values, construct `AnalogButtons` with `show_unknown = true` — it prints raw ADC readings for any unrecognised presses to Serial.
+When calibrating button values, construct `AnalogButton2` with `show_unknown = true` — it prints raw ADC readings for any unrecognised presses to Serial.
 
 ## Repository
 
-GitHub: https://github.com/LennartHennigs/AnalogButton2 (repo name differs from the library name `AnalogButtons`).
+GitHub: https://github.com/LennartHennigs/AnalogButton2
+
+### Publishing a release
+
+- PlatformIO: `pio pkg publish --no-interactive`
+- Arduino Library Manager: open an issue in `arduino/library-registry` with the repo URL — the bot validates and merges automatically.
 
 ### compile_examples.sh notes
 
