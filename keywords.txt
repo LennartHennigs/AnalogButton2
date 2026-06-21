@@ -1,3 +1,4 @@
+AnalogButton2	KEYWORD1
 AnalogButtons	KEYWORD1
 
 add	KEYWORD2
