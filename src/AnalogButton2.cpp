@@ -60,13 +60,24 @@ AnalogButton2::AnalogButton2(AnalogButton2&& other) noexcept
   : pin(other.pin), show_unknown(other.show_unknown), default_tolerance(other.default_tolerance),
     buttons(other.buttons), values(other.values), tolerances(other.tolerances),
     ids(other.ids), states(other.states), max_buttons(other.max_buttons),
-    btn_count(other.btn_count), analog_read_fn(other.analog_read_fn)
+    btn_count(other.btn_count), analog_read_fn(other.analog_read_fn),
+    global_changed_fn(other.global_changed_fn),
+    global_pressed_fn(other.global_pressed_fn),
+    global_released_fn(other.global_released_fn),
+    global_tap_fn(other.global_tap_fn),
+    global_click_fn(other.global_click_fn),
+    global_dbl_click_fn(other.global_dbl_click_fn),
+    global_trpl_click_fn(other.global_trpl_click_fn),
+    global_long_fn(other.global_long_fn),
+    global_long_det_fn(other.global_long_det_fn)
 {
   other.buttons    = nullptr;
   other.values     = nullptr;
   other.tolerances = nullptr;
   other.ids        = nullptr;
   other.states     = nullptr;
+  other.btn_count  = 0;
+  other.max_buttons = 0;
 #ifndef BUTTON2_HAS_STD_FUNCTION
   _g_states = states;
 #endif
@@ -79,7 +90,7 @@ Button2* AnalogButton2::add(uint16_t value, String id, uint16_t tolerance) {
 
   byte i = btn_count++;
   values[i]     = value;
-  tolerances[i] = (tolerance == 0) ? default_tolerance : tolerance;
+  tolerances[i] = (tolerance == ABS_INHERIT_TOLERANCE) ? default_tolerance : tolerance;
   ids[i]        = (id != "") ? id : String(value);
   states[i]     = HIGH;
 
@@ -95,26 +106,39 @@ Button2* AnalogButton2::add(uint16_t value, String id, uint16_t tolerance) {
   buttons[i].begin(BTN_VIRTUAL_PIN);
   buttons[i].setContext((void*)&ids[i]);
 
+  // Apply any global handlers registered before this add() call.
+  if (global_changed_fn)    buttons[i].setChangedHandler(global_changed_fn);
+  if (global_pressed_fn)    buttons[i].setPressedHandler(global_pressed_fn);
+  if (global_released_fn)   buttons[i].setReleasedHandler(global_released_fn);
+  if (global_tap_fn)        buttons[i].setTapHandler(global_tap_fn);
+  if (global_click_fn)      buttons[i].setClickHandler(global_click_fn);
+  if (global_dbl_click_fn)  buttons[i].setDoubleClickHandler(global_dbl_click_fn);
+  if (global_trpl_click_fn) buttons[i].setTripleClickHandler(global_trpl_click_fn);
+  if (global_long_fn)       buttons[i].setLongClickHandler(global_long_fn);
+  if (global_long_det_fn)   buttons[i].setLongClickDetectedHandler(global_long_det_fn);
+
   return &buttons[i];
 }
 
 /* ----------------------------------------------------- */
 
 String AnalogButton2::getId(Button2& btn) {
-  return *(String*)btn.getContext();
+  void* ctx = btn.getContext();
+  return ctx ? *(String*)ctx : String();
 }
 
 /* ----------------------------------------------------- */
 
 void AnalogButton2::reset() {
-  for (byte i = 0; i < max_buttons; i++) {
+  byte count = btn_count;
+  btn_count = 0;
+  for (byte i = 0; i < count; i++) {
     buttons[i].reset();
     buttons[i].setDebounceTime(BTN_DEBOUNCE_MS);
     buttons[i].setLongClickTime(BTN_LONGCLICK_MS);
     buttons[i].setDoubleClickTime(BTN_DOUBLECLICK_MS);
     states[i] = HIGH;
   }
-  btn_count = 0;
 }
 
 byte AnalogButton2::getCount() const { return btn_count; }
@@ -129,38 +153,47 @@ void AnalogButton2::setAnalogReadFunction(AnalogReadFunction f) {
 /* ----------------------------------------------------- */
 
 void AnalogButton2::setGlobalChangedHandler(CallbackFunction f) {
+  global_changed_fn = f;
   for (byte i = 0; i < btn_count; i++) buttons[i].setChangedHandler(f);
 }
 
 void AnalogButton2::setGlobalPressedHandler(CallbackFunction f) {
+  global_pressed_fn = f;
   for (byte i = 0; i < btn_count; i++) buttons[i].setPressedHandler(f);
 }
 
 void AnalogButton2::setGlobalReleasedHandler(CallbackFunction f) {
+  global_released_fn = f;
   for (byte i = 0; i < btn_count; i++) buttons[i].setReleasedHandler(f);
 }
 
 void AnalogButton2::setGlobalTapHandler(CallbackFunction f) {
+  global_tap_fn = f;
   for (byte i = 0; i < btn_count; i++) buttons[i].setTapHandler(f);
 }
 
 void AnalogButton2::setGlobalClickHandler(CallbackFunction f) {
+  global_click_fn = f;
   for (byte i = 0; i < btn_count; i++) buttons[i].setClickHandler(f);
 }
 
 void AnalogButton2::setGlobalDoubleClickHandler(CallbackFunction f) {
+  global_dbl_click_fn = f;
   for (byte i = 0; i < btn_count; i++) buttons[i].setDoubleClickHandler(f);
 }
 
 void AnalogButton2::setGlobalTripleClickHandler(CallbackFunction f) {
+  global_trpl_click_fn = f;
   for (byte i = 0; i < btn_count; i++) buttons[i].setTripleClickHandler(f);
 }
 
 void AnalogButton2::setGlobalLongClickHandler(CallbackFunction f) {
+  global_long_fn = f;
   for (byte i = 0; i < btn_count; i++) buttons[i].setLongClickHandler(f);
 }
 
 void AnalogButton2::setGlobalLongClickDetectedHandler(CallbackFunction f) {
+  global_long_det_fn = f;
   for (byte i = 0; i < btn_count; i++) buttons[i].setLongClickDetectedHandler(f);
 }
 
@@ -171,17 +204,22 @@ void AnalogButton2::loop() {
   bool found = false;
 
   for (byte i = 0; i < btn_count; i++) states[i] = HIGH;
-  for (byte i = 0; i < btn_count; i++) {
-    if (abs((int32_t)reading - (int32_t)values[i]) <= tolerances[i]) {
-      states[i] = LOW;
-      found = true;
-      break;
-    }
-  }
 
-  if (show_unknown && !found) {
-    Serial.print("unknown reading: ");
-    Serial.println(reading);
+  // reading == 0 is the idle/unpressed state in a resistor-ladder circuit;
+  // skip matching so a button registered near 0 is never spuriously fired.
+  if (reading > 0) {
+    for (byte i = 0; i < btn_count; i++) {
+      if (abs((int32_t)reading - (int32_t)values[i]) <= tolerances[i]) {
+        states[i] = LOW;
+        found = true;
+        break;
+      }
+    }
+
+    if (show_unknown && !found) {
+      Serial.print("unknown reading: ");
+      Serial.println(reading);
+    }
   }
 
   for (byte i = 0; i < btn_count; i++) {

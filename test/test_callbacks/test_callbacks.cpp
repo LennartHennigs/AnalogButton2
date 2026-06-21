@@ -281,6 +281,26 @@ test(test_callbacks, callback_receives_correct_button_reference) {
 
 /////////////////////////////////////////////////////////////////
 
+test(test_callbacks, global_click_handler_set_before_add_fires) {
+  resetCbVars();
+  AnalogButton2 btns = createTestButtons();
+  // Handler registered BEFORE add() — must still fire for all subsequently added buttons.
+  btns.setGlobalClickHandler([](Button2& b) { cb_count++; });
+  btns.add(BTN_A_VALUE, "A");
+  btns.add(BTN_B_VALUE, "B");
+
+  clickAnalog(btns, BTN_A_VALUE);
+  delay(BTN_DOUBLECLICK_MS);
+  btns.loop();
+  clickAnalog(btns, BTN_B_VALUE);
+  delay(BTN_DOUBLECLICK_MS);
+  btns.loop();
+
+  assertEqual(cb_count, 2);
+}
+
+/////////////////////////////////////////////////////////////////
+
 test(test_callbacks, global_click_handler_id_via_context) {
   resetCbVars();
   String captured_id = "";

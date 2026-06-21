@@ -109,21 +109,21 @@ API
 | Method | Description |
 |--------|-------------|
 | `AnalogButton2(byte pin, bool show_unknown = false, uint16_t tolerance = 10, byte maxButtons = 10)` | Constructor. `tolerance` sets the default ADC match window. `maxButtons` controls how many buttons can be registered and how much heap is allocated — defaults to 10. |
-| `Button2* add(uint16_t value, String id = "", uint16_t tolerance = 0)` | Register a button. `tolerance = 0` inherits the constructor default. Returns `Button2*` for chaining, or `nullptr` if the 10-button limit is reached. |
+| `Button2* add(uint16_t value, String id = "", uint16_t tolerance = ABS_INHERIT_TOLERANCE)` | Register a button. Omit `tolerance` (or pass `ABS_INHERIT_TOLERANCE`) to inherit the constructor default; pass `0` to require an exact ADC match. Returns `Button2*` for chaining, or `nullptr` if the button limit is reached. |
 | `String getId(Button2& btn)` | Retrieve the string label for a button inside a callback. |
 | `void reset()` | Clear all registered buttons; the object can be re-used with new `add()` calls. |
 | `byte getCount() const` | Number of currently registered buttons. |
 | `bool isFull() const` | `true` when the `maxButtons` limit is reached. |
 | `void setAnalogReadFunction(f)` | Inject a custom ADC reader (used by the test suite; replaces `analogRead`). |
-| `void setGlobalChangedHandler(f)` | Set the same changed handler on all registered buttons. |
-| `void setGlobalPressedHandler(f)` | Set the same pressed handler on all registered buttons. |
-| `void setGlobalReleasedHandler(f)` | Set the same released handler on all registered buttons. |
-| `void setGlobalTapHandler(f)` | Set the same tap handler on all registered buttons. |
-| `void setGlobalClickHandler(f)` | Set the same click handler on all registered buttons. |
-| `void setGlobalDoubleClickHandler(f)` | Set the same double-click handler on all registered buttons. |
-| `void setGlobalTripleClickHandler(f)` | Set the same triple-click handler on all registered buttons. |
-| `void setGlobalLongClickHandler(f)` | Set the same long-click handler on all registered buttons. |
-| `void setGlobalLongClickDetectedHandler(f)` | Set the same long-click-detected handler on all registered buttons. |
+| `void setGlobalChangedHandler(f)` | Apply the same changed handler to all buttons — including those added after this call. |
+| `void setGlobalPressedHandler(f)` | Apply the same pressed handler to all buttons — including those added after this call. |
+| `void setGlobalReleasedHandler(f)` | Apply the same released handler to all buttons — including those added after this call. |
+| `void setGlobalTapHandler(f)` | Apply the same tap handler to all buttons — including those added after this call. |
+| `void setGlobalClickHandler(f)` | Apply the same click handler to all buttons — including those added after this call. |
+| `void setGlobalDoubleClickHandler(f)` | Apply the same double-click handler to all buttons — including those added after this call. |
+| `void setGlobalTripleClickHandler(f)` | Apply the same triple-click handler to all buttons — including those added after this call. |
+| `void setGlobalLongClickHandler(f)` | Apply the same long-click handler to all buttons — including those added after this call. |
+| `void setGlobalLongClickDetectedHandler(f)` | Apply the same long-click-detected handler to all buttons — including those added after this call. |
 | `void loop()` | Call this in your Arduino `loop()`. Reads the pin and drives Button2 state machines. |
 
 

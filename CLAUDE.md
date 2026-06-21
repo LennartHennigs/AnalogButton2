@@ -17,10 +17,12 @@ Internally, `AnalogButton2` owns a fixed-size array of up to `ABS_MAX_BUTTONS` (
 Key design decisions:
 - All event logic (debounce, timing, multi-click) lives in Button2 — this library only handles analog multiplexing.
 - In `add()`, `setButtonStateFunction` must be called **before** `begin()` so that Button2's initial `_getState()` call inside `begin()` reads `HIGH` (released) via our function rather than `digitalRead(BTN_VIRTUAL_PIN)`, which returns `LOW` (pressed) in EpoxyDuino and causes spurious press/release events.
-- `show_unknown` mode prints unrecognised readings to `Serial` — useful for calibrating button values.
+- `show_unknown` mode prints unrecognised readings to `Serial` — useful for calibrating button values. Reading = 0 is never printed (it is the idle/unpressed level in a resistor-ladder circuit).
+- `loop()` treats reading = 0 as "idle" and skips matching entirely. Do not register a button at value 0 — it would never fire.
+- `add()` tolerance sentinel: `ABS_INHERIT_TOLERANCE` (= `UINT16_MAX`, the default) inherits `default_tolerance`; passing `0` means exact match only. Do not confuse with the old API where `0` inherited the default.
+- `setGlobal*Handler()` stores the callback and also applies it in every future `add()` call — so call order relative to `add()` does not matter. The handler is cleared only when the instance is destroyed, not when `reset()` is called.
 - Button values and analog readings are `uint16_t`, covering the full 0–1023 range returned by `analogRead()`.
 - On AVR (no `std::function`), only one `AnalogButton2` instance is supported — a second instance overwrites the shared `_g_states` array and breaks the first. ESP8266/ESP32 support multiple instances via capturing lambdas.
-- `setGlobalClickHandler()`, `setGlobalPressedHandler()`, `setGlobalReleasedHandler()` — apply a single callback to all registered buttons at once.
 
 ## Development
 

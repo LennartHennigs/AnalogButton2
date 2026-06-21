@@ -176,11 +176,11 @@ test(test_matching, per_button_tolerance_overrides_default) {
 
 /////////////////////////////////////////////////////////////////
 
-test(test_matching, per_button_tolerance_zero_inherits_default) {
+test(test_matching, omitted_tolerance_inherits_default) {
   resetMatchVars();
   AnalogButton2 btns = createTestButtons();  // default tolerance = ABS_VALUE_RANGE (10)
-  // tolerance=0 means inherit default (10)
-  btns.add(BTN_A_VALUE, "A", 0)->setClickHandler([](Button2& b) { btnA_fired = true; });
+  // No tolerance argument → inherits default (ABS_INHERIT_TOLERANCE sentinel)
+  btns.add(BTN_A_VALUE, "A")->setClickHandler([](Button2& b) { btnA_fired = true; });
 
   // Distance 9 is within the default ABS_VALUE_RANGE=10
   clickAnalog(btns, BTN_A_VALUE + 9);
@@ -188,6 +188,30 @@ test(test_matching, per_button_tolerance_zero_inherits_default) {
   btns.loop();
 
   assertTrue(btnA_fired);
+}
+
+/////////////////////////////////////////////////////////////////
+
+test(test_matching, per_button_tolerance_zero_means_exact_match) {
+  resetMatchVars();
+  AnalogButton2 btns = createTestButtons();
+  // tolerance=0 means exact match only
+  btns.add(BTN_A_VALUE, "A", 0)->setClickHandler([](Button2& b) { btnA_fired = true; });
+
+  // Exact value fires
+  clickAnalog(btns, BTN_A_VALUE);
+  delay(BTN_DOUBLECLICK_MS);
+  btns.loop();
+  assertTrue(btnA_fired);
+
+  // One count away does not fire
+  resetMatchVars();
+  AnalogButton2 btns2 = createTestButtons();
+  btns2.add(BTN_A_VALUE, "A", 0)->setClickHandler([](Button2& b) { btnA_fired = true; });
+  clickAnalog(btns2, BTN_A_VALUE + 1);
+  delay(BTN_DOUBLECLICK_MS);
+  btns2.loop();
+  assertFalse(btnA_fired);
 }
 
 /////////////////////////////////////////////////////////////////

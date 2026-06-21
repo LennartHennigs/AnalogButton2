@@ -14,6 +14,7 @@
 
 #define ABS_VALUE_RANGE      10
 #define ABS_MAX_BUTTONS      10
+#define ABS_INHERIT_TOLERANCE UINT16_MAX
 
 /* ----------------------------------------------------- */
 
@@ -40,7 +41,17 @@ class AnalogButton2 {
     byte      max_buttons;
     byte      btn_count = 0;
 
-    AnalogReadFunction analog_read_fn = BUTTON2_NULL;
+    AnalogReadFunction analog_read_fn     = BUTTON2_NULL;
+
+    CallbackFunction global_changed_fn    = BUTTON2_NULL;
+    CallbackFunction global_pressed_fn    = BUTTON2_NULL;
+    CallbackFunction global_released_fn   = BUTTON2_NULL;
+    CallbackFunction global_tap_fn        = BUTTON2_NULL;
+    CallbackFunction global_click_fn      = BUTTON2_NULL;
+    CallbackFunction global_dbl_click_fn  = BUTTON2_NULL;
+    CallbackFunction global_trpl_click_fn = BUTTON2_NULL;
+    CallbackFunction global_long_fn       = BUTTON2_NULL;
+    CallbackFunction global_long_det_fn   = BUTTON2_NULL;
 
   public:
     AnalogButton2(byte pin, bool show_unknown = false, uint16_t tolerance = ABS_VALUE_RANGE, byte maxButtons = ABS_MAX_BUTTONS);
@@ -50,8 +61,9 @@ class AnalogButton2 {
     AnalogButton2& operator=(const AnalogButton2&) = delete;
     AnalogButton2& operator=(AnalogButton2&&) = delete;
 
-    // Returns nullptr when maxButtons is exceeded
-    Button2* add(uint16_t value, String id = "", uint16_t tolerance = 0);
+    // Returns nullptr when maxButtons is exceeded. tolerance=0 requires exact match;
+    // omit or pass ABS_INHERIT_TOLERANCE to use the instance default.
+    Button2* add(uint16_t value, String id = "", uint16_t tolerance = ABS_INHERIT_TOLERANCE);
 
     String getId(Button2& btn);
 

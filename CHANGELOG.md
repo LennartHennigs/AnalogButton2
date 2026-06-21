@@ -5,6 +5,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- `setGlobal*Handler()` now applies to buttons registered **both before and after** the call. Previously the handler was only wired to buttons already in `[0, btn_count)` at call time; subsequent `add()` calls were silently skipped.
+- `loop()` now skips matching entirely when the analog reading is 0, preventing a button registered with `value ≤ tolerance` from firing spuriously whenever the pin is at its idle level.
+- Move constructor now leaves the moved-from object in a safe no-op state (`btn_count = 0`, `max_buttons = 0`); calling `loop()` or `reset()` on a moved-from instance no longer crashes via a null-pointer dereference.
+- `getId()` now returns an empty `String` instead of crashing when `getContext()` returns null (e.g., a `Button2` not registered through this instance).
+- `reset()` now only iterates the `btn_count` registered slots rather than all `max_buttons` allocated slots, avoiding method calls on `Button2` objects that were never `begin()`-ed.
+- `show_unknown` no longer prints for reading = 0 (idle state), preventing serial flooding between actual button presses.
+
+### Changed
+
+- **Breaking:** `add()` third parameter sentinel changed — `tolerance = 0` now means **exact match** (no ADC jitter allowed). To inherit the instance default, omit the argument or pass `ABS_INHERIT_TOLERANCE`. Sketches that previously passed `0` to inherit the default must be updated to omit the argument.
+
 ## [2.0.0] - 2026-06-21
 
 ### Changed

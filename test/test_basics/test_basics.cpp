@@ -17,6 +17,10 @@ using namespace aunit;
 
 /////////////////////////////////////////////////////////////////
 
+static bool after_reset_fired = false;
+
+/////////////////////////////////////////////////////////////////
+
 test(test_basics, add_returns_button2_reference) {
   AnalogButton2 btns = createTestButtons();
   Button2* b = btns.add(BTN_A_VALUE, "A");
@@ -123,17 +127,17 @@ test(test_basics, reset_clears_all_buttons) {
 /////////////////////////////////////////////////////////////////
 
 test(test_basics, add_after_reset_works) {
-  static bool fired = false;
+  after_reset_fired = false;
   AnalogButton2 btns = createTestButtons();
   btns.add(BTN_A_VALUE, "A");
   btns.reset();
-  btns.add(BTN_B_VALUE, "B")->setClickHandler([](Button2& b) { fired = true; });
+  btns.add(BTN_B_VALUE, "B")->setClickHandler([](Button2& b) { after_reset_fired = true; });
 
   clickAnalog(btns, BTN_B_VALUE);
   delay(BTN_DOUBLECLICK_MS);
   btns.loop();
 
-  assertTrue(fired);
+  assertTrue(after_reset_fired);
 }
 
 /////////////////////////////////////////////////////////////////
