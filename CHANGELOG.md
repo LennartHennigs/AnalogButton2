@@ -5,13 +5,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [1.0.0] - 2026-06-21
+
 ### Changed
 
-- **Breaking:** C++ class renamed from `AnalogButtons` to `AnalogButton2` to match the library and repository name.
-- README title and Arduino Library Manager search term updated to `AnalogButton2`.
-- LICENSE copyright year updated to 2026.
-
-## [1.0.0] - 2026-06-21
+- C++ class renamed from `AnalogButtons` to `AnalogButton2` to match the library and repository name.
 
 ### Added
 
