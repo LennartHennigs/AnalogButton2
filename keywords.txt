@@ -2,9 +2,19 @@ AnalogButtons	KEYWORD1
 
 add	KEYWORD2
 getId	KEYWORD2
-setGlobalClickHandler	KEYWORD2
+reset	KEYWORD2
+getCount	KEYWORD2
+isFull	KEYWORD2
+setAnalogReadFunction	KEYWORD2
+setGlobalChangedHandler	KEYWORD2
 setGlobalPressedHandler	KEYWORD2
 setGlobalReleasedHandler	KEYWORD2
+setGlobalTapHandler	KEYWORD2
+setGlobalClickHandler	KEYWORD2
+setGlobalDoubleClickHandler	KEYWORD2
+setGlobalTripleClickHandler	KEYWORD2
+setGlobalLongClickHandler	KEYWORD2
+setGlobalLongClickDetectedHandler	KEYWORD2
 loop	KEYWORD2
 
 ABS_VALUE_RANGE	LITERAL1
