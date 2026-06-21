@@ -9,7 +9,7 @@
 
 #include <Arduino.h>
 #include <Button2.h>
-#include <AnalogButtons.h>
+#include <AnalogButton2.h>
 
 /////////////////////////////////////////////////////////////////
 

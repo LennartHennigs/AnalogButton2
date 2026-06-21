@@ -35,7 +35,7 @@ Usage
 
 ```cpp
 #include <Button2.h>
-#include <AnalogButtons.h>
+#include <AnalogButton2.h>
 
 AnalogButtons btns(A0);
 

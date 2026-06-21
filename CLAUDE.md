@@ -8,7 +8,7 @@ Arduino library for reading multiple buttons wired to a single analog pin. Each 
 
 ## Architecture
 
-The library has one class: **`AnalogButtons`** (`src/AnalogButtons.h/.cpp`). It depends on the [Button2](https://github.com/LennartHennigs/Button2) library for all button event handling.
+The library has one class: **`AnalogButtons`** (`src/AnalogButton2.h/.cpp`). It depends on the [Button2](https://github.com/LennartHennigs/Button2) library for all button event handling.
 
 Internally, `AnalogButtons` owns a fixed-size array of up to `ABS_MAX_BUTTONS` (10) real `Button2` instances. Each instance is created with `BTN_VIRTUAL_PIN` and a lambda state function that returns the button's current `states[i]` byte (`LOW` = pressed, `HIGH` = released). `AnalogButtons::loop()` reads the analog pin once per call, updates `states[]` by matching the reading to each button's registered value within `ABS_VALUE_RANGE` (±10), then calls `button.loop()` on every instance — which drives Button2's full state machine (debounce, click/double-click/long-press detection, callbacks).
 

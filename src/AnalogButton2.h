@@ -1,6 +1,6 @@
 /* ----------------------------------------------------- */
 /*
-  AnalogButtons.h - Arduino Library to read multiple buttons on a single analog pin.
+  AnalogButton2.h - Arduino Library to read multiple buttons on a single analog pin.
   Created by Lennart Hennigs, October 28, 2017.
 */
 /* ----------------------------------------------------- */
