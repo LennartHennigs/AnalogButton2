@@ -1,0 +1,23 @@
+{
+	"name": "AnalogButtons",
+	"version": "1.0.0",
+	"keywords": "analog, button, input, debounce, click, longpress, arduino, esp32, esp8266",
+	"description": "Read multiple buttons wired to a single analog pin with callback support. Maps analog voltage levels (0-1023) to named button objects and fires callbacks on press, release, click, double-click, long-press, and more via Button2.",
+	"homepage": "https://github.com/LennartHennigs/AnalogButton2",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/LennartHennigs/AnalogButton2"
+	},
+	"authors": {
+		"name": "Lennart Hennigs",
+		"url": "https://lennarthennigs.de"
+	},
+	"frameworks": ["arduino"],
+	"platforms": "*",
+	"license": "MIT",
+	"examples": "examples/*",
+	"dependencies": {
+		"name": "Button2",
+		"authors": "Lennart Hennigs"
+	}
+}
