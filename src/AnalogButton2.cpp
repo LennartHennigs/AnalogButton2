@@ -4,11 +4,11 @@
 
 // On AVR, std::function and capturing lambdas are unavailable.
 // Ten static wrapper functions read the shared _g_states array by index.
-// LIMITATION: Only one AnalogButtons instance is supported on AVR.
+// LIMITATION: Only one AnalogButton2 instance is supported on AVR.
 // A second instance overwrites _g_states and breaks the first. Use
 // ESP8266 or ESP32 (which support std::function) for multiple instances.
 #ifndef BUTTON2_HAS_STD_FUNCTION
-#warning "AnalogButtons: AVR target detected — only one AnalogButtons instance is supported per sketch."
+#warning "AnalogButton2: AVR target detected — only one AnalogButton2 instance is supported per sketch."
 static uint8_t* _g_states = nullptr;
 static uint8_t _sf0() { return _g_states[0]; }
 static uint8_t _sf1() { return _g_states[1]; }
@@ -28,7 +28,7 @@ static _SlotFn _g_fns[ABS_MAX_BUTTONS] = {
 
 /* ----------------------------------------------------- */
 
-AnalogButtons::AnalogButtons(byte pin, bool show_unknown, uint16_t tolerance) {
+AnalogButton2::AnalogButton2(byte pin, bool show_unknown, uint16_t tolerance) {
   this->pin = pin;
   this->show_unknown = show_unknown;
   this->default_tolerance = tolerance;
@@ -40,7 +40,7 @@ AnalogButtons::AnalogButtons(byte pin, bool show_unknown, uint16_t tolerance) {
 
 /* ----------------------------------------------------- */
 
-Button2& AnalogButtons::add(uint16_t value, String id, uint16_t tolerance) {
+Button2& AnalogButton2::add(uint16_t value, String id, uint16_t tolerance) {
   if (btn_count >= ABS_MAX_BUTTONS) return buttons[ABS_MAX_BUTTONS - 1];
 
   byte i = btn_count++;
@@ -66,13 +66,13 @@ Button2& AnalogButtons::add(uint16_t value, String id, uint16_t tolerance) {
 
 /* ----------------------------------------------------- */
 
-String AnalogButtons::getId(Button2& btn) {
+String AnalogButton2::getId(Button2& btn) {
   return *(String*)btn.getContext();
 }
 
 /* ----------------------------------------------------- */
 
-void AnalogButtons::reset() {
+void AnalogButton2::reset() {
   for (byte i = 0; i < btn_count; i++) {
     buttons[i].reset();
     states[i] = HIGH;
@@ -80,56 +80,56 @@ void AnalogButtons::reset() {
   btn_count = 0;
 }
 
-byte AnalogButtons::getCount() const { return btn_count; }
-bool AnalogButtons::isFull()  const  { return btn_count >= ABS_MAX_BUTTONS; }
+byte AnalogButton2::getCount() const { return btn_count; }
+bool AnalogButton2::isFull()  const  { return btn_count >= ABS_MAX_BUTTONS; }
 
 /* ----------------------------------------------------- */
 
-void AnalogButtons::setAnalogReadFunction(AnalogReadFunction f) {
+void AnalogButton2::setAnalogReadFunction(AnalogReadFunction f) {
   analog_read_fn = f;
 }
 
 /* ----------------------------------------------------- */
 
-void AnalogButtons::setGlobalChangedHandler(CallbackFunction f) {
+void AnalogButton2::setGlobalChangedHandler(CallbackFunction f) {
   for (byte i = 0; i < btn_count; i++) buttons[i].setChangedHandler(f);
 }
 
-void AnalogButtons::setGlobalPressedHandler(CallbackFunction f) {
+void AnalogButton2::setGlobalPressedHandler(CallbackFunction f) {
   for (byte i = 0; i < btn_count; i++) buttons[i].setPressedHandler(f);
 }
 
-void AnalogButtons::setGlobalReleasedHandler(CallbackFunction f) {
+void AnalogButton2::setGlobalReleasedHandler(CallbackFunction f) {
   for (byte i = 0; i < btn_count; i++) buttons[i].setReleasedHandler(f);
 }
 
-void AnalogButtons::setGlobalTapHandler(CallbackFunction f) {
+void AnalogButton2::setGlobalTapHandler(CallbackFunction f) {
   for (byte i = 0; i < btn_count; i++) buttons[i].setTapHandler(f);
 }
 
-void AnalogButtons::setGlobalClickHandler(CallbackFunction f) {
+void AnalogButton2::setGlobalClickHandler(CallbackFunction f) {
   for (byte i = 0; i < btn_count; i++) buttons[i].setClickHandler(f);
 }
 
-void AnalogButtons::setGlobalDoubleClickHandler(CallbackFunction f) {
+void AnalogButton2::setGlobalDoubleClickHandler(CallbackFunction f) {
   for (byte i = 0; i < btn_count; i++) buttons[i].setDoubleClickHandler(f);
 }
 
-void AnalogButtons::setGlobalTripleClickHandler(CallbackFunction f) {
+void AnalogButton2::setGlobalTripleClickHandler(CallbackFunction f) {
   for (byte i = 0; i < btn_count; i++) buttons[i].setTripleClickHandler(f);
 }
 
-void AnalogButtons::setGlobalLongClickHandler(CallbackFunction f) {
+void AnalogButton2::setGlobalLongClickHandler(CallbackFunction f) {
   for (byte i = 0; i < btn_count; i++) buttons[i].setLongClickHandler(f);
 }
 
-void AnalogButtons::setGlobalLongClickDetectedHandler(CallbackFunction f) {
+void AnalogButton2::setGlobalLongClickDetectedHandler(CallbackFunction f) {
   for (byte i = 0; i < btn_count; i++) buttons[i].setLongClickDetectedHandler(f);
 }
 
 /* ----------------------------------------------------- */
 
-void AnalogButtons::loop() {
+void AnalogButton2::loop() {
   uint16_t reading = analog_read_fn ? analog_read_fn(pin) : (uint16_t)analogRead(pin);
   bool found = false;
 

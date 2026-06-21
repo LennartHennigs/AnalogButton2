@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# AnalogButtons Library Compilation Test Script
+# AnalogButton2 Library Compilation Test Script
 # Tests compilation across multiple Arduino platforms and all examples
 
 # Not using set -e: compilation failures are tracked via counters; aborting early
@@ -220,7 +220,7 @@ run_all_tests() {
     local selected_platform="$1"
     local use_tool="$2"
 
-    print_status "INFO" "Starting compilation tests for AnalogButtons library"
+    print_status "INFO" "Starting compilation tests for AnalogButton2 library"
     echo "======================================================="
     echo ""
 
@@ -282,7 +282,7 @@ show_summary() {
 #######################################################################
 
 show_help() {
-    echo "AnalogButtons Library Compilation Test Script"
+    echo "AnalogButton2 Library Compilation Test Script"
     echo ""
     echo "Usage: $0 [OPTIONS] [PLATFORM]"
     echo ""

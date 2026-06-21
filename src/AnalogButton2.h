@@ -17,7 +17,7 @@
 
 /* ----------------------------------------------------- */
 
-class AnalogButtons {
+class AnalogButton2 {
   private:
     byte pin;
     bool show_unknown = false;
@@ -40,7 +40,7 @@ class AnalogButtons {
     AnalogReadFunction analog_read_fn = BUTTON2_NULL;
 
   public:
-    AnalogButtons(byte pin, bool show_unknown = false, uint16_t tolerance = ABS_VALUE_RANGE);
+    AnalogButton2(byte pin, bool show_unknown = false, uint16_t tolerance = ABS_VALUE_RANGE);
 
     // tolerance = 0 inherits the constructor default
     Button2& add(uint16_t value, String id = "", uint16_t tolerance = 0);

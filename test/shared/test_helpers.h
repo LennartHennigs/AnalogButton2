@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////
 /*
-  Shared test helpers for AnalogButtons test suites.
-  Simulates analog pin readings to drive AnalogButtons without hardware.
+  Shared test helpers for AnalogButton2 test suites.
+  Simulates analog pin readings to drive AnalogButton2 without hardware.
 */
 /////////////////////////////////////////////////////////////////
 
@@ -30,15 +30,15 @@ uint16_t mockAnalogRead(byte pin) {
 
 /////////////////////////////////////////////////////////////////
 
-inline AnalogButtons createTestButtons() {
-  AnalogButtons btns(TEST_PIN);
+inline AnalogButton2 createTestButtons() {
+  AnalogButton2 btns(TEST_PIN);
   btns.setAnalogReadFunction(mockAnalogRead);
   return btns;
 }
 
 /////////////////////////////////////////////////////////////////
 
-inline void pressAnalog(AnalogButtons& btns, uint16_t value, unsigned long duration) {
+inline void pressAnalog(AnalogButton2& btns, uint16_t value, unsigned long duration) {
   simulatedAnalogValue = value;
   unsigned long end = millis() + duration;
   while (millis() < end) {
@@ -47,7 +47,7 @@ inline void pressAnalog(AnalogButtons& btns, uint16_t value, unsigned long durat
   }
 }
 
-inline void releaseAnalog(AnalogButtons& btns) {
+inline void releaseAnalog(AnalogButton2& btns) {
   simulatedAnalogValue = 0;
   delay(5);
   btns.loop();
@@ -55,7 +55,7 @@ inline void releaseAnalog(AnalogButtons& btns) {
   btns.loop();
 }
 
-inline void clickAnalog(AnalogButtons& btns, uint16_t value, unsigned long duration = DEBOUNCE_MS) {
+inline void clickAnalog(AnalogButton2& btns, uint16_t value, unsigned long duration = DEBOUNCE_MS) {
   pressAnalog(btns, value, duration);
   releaseAnalog(btns);
 }

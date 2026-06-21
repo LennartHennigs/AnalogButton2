@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////
 /*
-  Basic tests for AnalogButtons library.
+  Basic tests for AnalogButton2 library.
   Tests button registration, label retrieval, and constructor options.
 */
 /////////////////////////////////////////////////////////////////
@@ -18,7 +18,7 @@ using namespace aunit;
 /////////////////////////////////////////////////////////////////
 
 test(test_basics, add_returns_button2_reference) {
-  AnalogButtons btns = createTestButtons();
+  AnalogButton2 btns = createTestButtons();
   Button2& b = btns.add(BTN_A_VALUE, "A");
   // BTN_VIRTUAL_PIN = 254
   assertEqual(b.getPin(), (uint8_t)BTN_VIRTUAL_PIN);
@@ -27,7 +27,7 @@ test(test_basics, add_returns_button2_reference) {
 /////////////////////////////////////////////////////////////////
 
 test(test_basics, get_id_returns_label) {
-  AnalogButtons btns = createTestButtons();
+  AnalogButton2 btns = createTestButtons();
   btns.add(BTN_A_VALUE, "LEFT");
   btns.add(BTN_B_VALUE, "RIGHT");
 
@@ -43,7 +43,7 @@ test(test_basics, get_id_returns_label) {
 /////////////////////////////////////////////////////////////////
 
 test(test_basics, get_id_falls_back_to_value_string) {
-  AnalogButtons btns = createTestButtons();
+  AnalogButton2 btns = createTestButtons();
   Button2& b = btns.add(BTN_A_VALUE);
   assertEqual(btns.getId(b), String(BTN_A_VALUE));
 }
@@ -51,7 +51,7 @@ test(test_basics, get_id_falls_back_to_value_string) {
 /////////////////////////////////////////////////////////////////
 
 test(test_basics, multiple_buttons_registered) {
-  AnalogButtons btns = createTestButtons();
+  AnalogButton2 btns = createTestButtons();
   btns.add(BTN_A_VALUE, "A");
   btns.add(BTN_B_VALUE, "B");
   btns.add(BTN_C_VALUE, "C");
@@ -62,7 +62,7 @@ test(test_basics, multiple_buttons_registered) {
 /////////////////////////////////////////////////////////////////
 
 test(test_basics, max_buttons) {
-  AnalogButtons btns = createTestButtons();
+  AnalogButton2 btns = createTestButtons();
   for (int i = 0; i < ABS_MAX_BUTTONS; i++) {
     btns.add((uint16_t)(50 + i * 90), String(i));
   }
@@ -72,7 +72,7 @@ test(test_basics, max_buttons) {
 /////////////////////////////////////////////////////////////////
 
 test(test_basics, overflow_beyond_max_buttons_does_not_crash) {
-  AnalogButtons btns = createTestButtons();
+  AnalogButton2 btns = createTestButtons();
   for (int i = 0; i <= ABS_MAX_BUTTONS; i++) {  // one over the limit
     btns.add((uint16_t)(50 + i * 50), String(i));
   }
@@ -83,7 +83,7 @@ test(test_basics, overflow_beyond_max_buttons_does_not_crash) {
 /////////////////////////////////////////////////////////////////
 
 test(test_basics, get_count_tracks_registrations) {
-  AnalogButtons btns = createTestButtons();
+  AnalogButton2 btns = createTestButtons();
   assertEqual(btns.getCount(), (byte)0);
   btns.add(BTN_A_VALUE, "A");
   assertEqual(btns.getCount(), (byte)1);
@@ -94,14 +94,14 @@ test(test_basics, get_count_tracks_registrations) {
 /////////////////////////////////////////////////////////////////
 
 test(test_basics, is_full_false_when_space_available) {
-  AnalogButtons btns = createTestButtons();
+  AnalogButton2 btns = createTestButtons();
   assertFalse(btns.isFull());
 }
 
 /////////////////////////////////////////////////////////////////
 
 test(test_basics, is_full_true_at_capacity) {
-  AnalogButtons btns = createTestButtons();
+  AnalogButton2 btns = createTestButtons();
   for (int i = 0; i < ABS_MAX_BUTTONS; i++) {
     btns.add((uint16_t)(50 + i * 90), String(i));
   }
@@ -111,7 +111,7 @@ test(test_basics, is_full_true_at_capacity) {
 /////////////////////////////////////////////////////////////////
 
 test(test_basics, reset_clears_all_buttons) {
-  AnalogButtons btns = createTestButtons();
+  AnalogButton2 btns = createTestButtons();
   btns.add(BTN_A_VALUE, "A");
   btns.add(BTN_B_VALUE, "B");
   assertEqual(btns.getCount(), (byte)2);
@@ -124,7 +124,7 @@ test(test_basics, reset_clears_all_buttons) {
 
 test(test_basics, add_after_reset_works) {
   static bool fired = false;
-  AnalogButtons btns = createTestButtons();
+  AnalogButton2 btns = createTestButtons();
   btns.add(BTN_A_VALUE, "A");
   btns.reset();
   btns.add(BTN_B_VALUE, "B").setClickHandler([](Button2& b) { fired = true; });
@@ -144,7 +144,7 @@ void setup() {
   delay(100);
   Serial.begin(SERIAL_SPEED);
   while (!Serial) {}
-  Serial.println(F("\n\nAnalogButtons Basic Tests"));
+  Serial.println(F("\n\nAnalogButton2 Basic Tests"));
 }
 
 void loop() {

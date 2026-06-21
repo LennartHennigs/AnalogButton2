@@ -9,7 +9,6 @@
 */
 /* ----------------------------------------------------- */
 
-#include <Button2.h>
 #include <AnalogButton2.h>
 
 /* ----------------------------------------------------- */
@@ -17,7 +16,7 @@
 // Pass true to enable show_unknown mode.
 // Any analog reading that doesn't match a registered button
 // is printed to Serial so you can record the value.
-AnalogButtons btns(A0, true);
+AnalogButton2 btns(A0, true);
 
 /* ----------------------------------------------------- */
 
@@ -25,7 +24,7 @@ void setup() {
   Serial.begin(9600);
   while (!Serial);
   delay(100);
-  Serial.println("\n\nAnalogButtons Calibration\n");
+  Serial.println("\n\nAnalogButton2 Calibration\n");
   Serial.println("Press each button and note the printed ADC value.");
   Serial.println("Use those values in add() in your final sketch.\n");
 

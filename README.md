@@ -1,4 +1,4 @@
-AnalogButtons
+AnalogButton2
 =============
 
 * Author: Lennart Hennigs (https://www.lennarthennigs.de)
@@ -11,7 +11,7 @@ Arduino Library to read multiple buttons wired to a single analog pin.
 Description
 -----------
 
-Many button keyboards (e.g. LCD shield button rows) connect several buttons to one analog pin, each producing a distinct voltage level. `AnalogButtons` polls that pin in your `loop()`, identifies which button was pressed by matching the reading to a registered value within a configurable tolerance (±10), and delegates all event handling to [Button2](https://github.com/LennartHennigs/Button2) — giving you press, release, click, double-click, long-press, and retriggerable long-press for free.
+Many button keyboards (e.g. LCD shield button rows) connect several buttons to one analog pin, each producing a distinct voltage level. `AnalogButton2` polls that pin in your `loop()`, identifies which button was pressed by matching the reading to a registered value within a configurable tolerance (±10), and delegates all event handling to [Button2](https://github.com/LennartHennigs/Button2) — giving you press, release, click, double-click, long-press, and retriggerable long-press for free.
 
 Up to 10 buttons can be registered per pin. Analog readings cover the full 0–1023 range returned by `analogRead()`.
 
@@ -21,10 +21,10 @@ Up to 10 buttons can be registered per pin. Analog readings cover the full 0–1
 Calibration
 -----------
 
-Not sure what value to use for a button? Construct `AnalogButtons` with `show_unknown = true`:
+Not sure what value to use for a button? Construct `AnalogButton2` with `show_unknown = true`:
 
 ```cpp
-AnalogButtons btns(A0, true);
+AnalogButton2 btns(A0, true);
 ```
 
 Any unrecognised reading (non-zero) will be printed to `Serial`. Press each button and note the values, then register them with `add()`.
@@ -37,7 +37,7 @@ Usage
 #include <Button2.h>
 #include <AnalogButton2.h>
 
-AnalogButtons btns(A0);
+AnalogButton2 btns(A0);
 
 void setup() {
   Serial.begin(9600);
@@ -105,7 +105,7 @@ API
 
 | Method | Description |
 |--------|-------------|
-| `AnalogButtons(byte pin, bool show_unknown = false, uint16_t tolerance = 10)` | Constructor. `tolerance` sets the default ADC match window (±value). |
+| `AnalogButton2(byte pin, bool show_unknown = false, uint16_t tolerance = 10)` | Constructor. `tolerance` sets the default ADC match window (±value). |
 | `Button2& add(uint16_t value, String id = "", uint16_t tolerance = 0)` | Register a button. `tolerance = 0` inherits the constructor default. Returns `Button2&` for chaining. |
 | `String getId(Button2& btn)` | Retrieve the string label for a button inside a callback. |
 | `void reset()` | Clear all registered buttons; the object can be re-used with new `add()` calls. |
@@ -127,7 +127,7 @@ API
 Installation
 ------------
 
-Open the Arduino IDE, choose **Sketch > Include Library > Manage Libraries…** and search for "AnalogButtons". Or download the ZIP from [GitHub](https://github.com/LennartHennigs/AnalogButton2) and choose **Sketch > Include Library > Add .ZIP Library…**.
+Open the Arduino IDE, choose **Sketch > Include Library > Manage Libraries…** and search for "AnalogButton2". Or download the ZIP from [GitHub](https://github.com/LennartHennigs/AnalogButton2) and choose **Sketch > Include Library > Add .ZIP Library…**.
 
 You must also have the [Button2](https://github.com/LennartHennigs/Button2) library installed.
 

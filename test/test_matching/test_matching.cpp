@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////
 /*
-  Value-matching tests for AnalogButtons library.
+  Value-matching tests for AnalogButton2 library.
   Tests analog reading → button mapping, tolerance range, and unknown readings.
 */
 /////////////////////////////////////////////////////////////////
@@ -30,7 +30,7 @@ void resetMatchVars() {
 
 test(test_matching, exact_value_triggers_button) {
   resetMatchVars();
-  AnalogButtons btns = createTestButtons();
+  AnalogButton2 btns = createTestButtons();
   btns.add(BTN_A_VALUE, "A").setClickHandler([](Button2& b) { btnA_fired = true; });
   btns.add(BTN_B_VALUE, "B").setClickHandler([](Button2& b) { btnB_fired = true; });
 
@@ -46,7 +46,7 @@ test(test_matching, exact_value_triggers_button) {
 
 test(test_matching, value_within_range_triggers) {
   resetMatchVars();
-  AnalogButtons btns = createTestButtons();
+  AnalogButton2 btns = createTestButtons();
   btns.add(BTN_A_VALUE, "A").setClickHandler([](Button2& b) { btnA_fired = true; });
 
   // ABS_VALUE_RANGE = 10, so distance of 9 should match
@@ -61,7 +61,7 @@ test(test_matching, value_within_range_triggers) {
 
 test(test_matching, value_at_range_boundary_does_not_trigger) {
   resetMatchVars();
-  AnalogButtons btns = createTestButtons();
+  AnalogButton2 btns = createTestButtons();
   btns.add(BTN_A_VALUE, "A").setClickHandler([](Button2& b) { btnA_fired = true; });
 
   // Distance exactly equal to ABS_VALUE_RANGE: abs(x - value) < ABS_VALUE_RANGE is false
@@ -76,7 +76,7 @@ test(test_matching, value_at_range_boundary_does_not_trigger) {
 
 test(test_matching, unregistered_value_fires_no_button) {
   resetMatchVars();
-  AnalogButtons btns = createTestButtons();
+  AnalogButton2 btns = createTestButtons();
   btns.add(BTN_A_VALUE, "A").setClickHandler([](Button2& b) { btnA_fired = true; });
   btns.add(BTN_B_VALUE, "B").setClickHandler([](Button2& b) { btnB_fired = true; });
 
@@ -93,7 +93,7 @@ test(test_matching, unregistered_value_fires_no_button) {
 
 test(test_matching, correct_button_selected_among_multiple) {
   resetMatchVars();
-  AnalogButtons btns = createTestButtons();
+  AnalogButton2 btns = createTestButtons();
   btns.add(BTN_A_VALUE, "A").setClickHandler([](Button2& b) { btnA_fired = true; });
   btns.add(BTN_B_VALUE, "B").setClickHandler([](Button2& b) { btnB_fired = true; });
 
@@ -109,7 +109,7 @@ test(test_matching, correct_button_selected_among_multiple) {
 
 test(test_matching, zero_reading_does_not_trigger) {
   resetMatchVars();
-  AnalogButtons btns = createTestButtons();
+  AnalogButton2 btns = createTestButtons();
   btns.add(BTN_A_VALUE, "A").setClickHandler([](Button2& b) { btnA_fired = true; });
 
   // A reading of 0 means "no button pressed" — should never fire a click
@@ -129,7 +129,7 @@ test(test_matching, zero_reading_does_not_trigger) {
 test(test_matching, constructor_tolerance_widens_window) {
   resetMatchVars();
   // Use a wider tolerance of 20
-  AnalogButtons btns(TEST_PIN, false, 20);
+  AnalogButton2 btns(TEST_PIN, false, 20);
   btns.setAnalogReadFunction(mockAnalogRead);
   btns.add(BTN_A_VALUE, "A").setClickHandler([](Button2& b) { btnA_fired = true; });
 
@@ -145,7 +145,7 @@ test(test_matching, constructor_tolerance_widens_window) {
 
 test(test_matching, per_button_tolerance_overrides_default) {
   resetMatchVars();
-  AnalogButtons btns = createTestButtons();  // default tolerance = ABS_VALUE_RANGE (10)
+  AnalogButton2 btns = createTestButtons();  // default tolerance = ABS_VALUE_RANGE (10)
   // Give button A a wider tolerance of 25
   btns.add(BTN_A_VALUE, "A", 25).setClickHandler([](Button2& b) { btnA_fired = true; });
   btns.add(BTN_B_VALUE, "B").setClickHandler([](Button2& b) { btnB_fired = true; });
@@ -163,7 +163,7 @@ test(test_matching, per_button_tolerance_overrides_default) {
 
 test(test_matching, per_button_tolerance_zero_inherits_default) {
   resetMatchVars();
-  AnalogButtons btns = createTestButtons();  // default tolerance = ABS_VALUE_RANGE (10)
+  AnalogButton2 btns = createTestButtons();  // default tolerance = ABS_VALUE_RANGE (10)
   // tolerance=0 means inherit default (10)
   btns.add(BTN_A_VALUE, "A", 0).setClickHandler([](Button2& b) { btnA_fired = true; });
 
@@ -183,7 +183,7 @@ void setup() {
   delay(100);
   Serial.begin(SERIAL_SPEED);
   while (!Serial) {}
-  Serial.println(F("\n\nAnalogButtons Matching Tests"));
+  Serial.println(F("\n\nAnalogButton2 Matching Tests"));
 }
 
 void loop() {
