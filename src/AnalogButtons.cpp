@@ -8,6 +8,7 @@
 // A second instance overwrites _g_states and breaks the first. Use
 // ESP8266 or ESP32 (which support std::function) for multiple instances.
 #ifndef BUTTON2_HAS_STD_FUNCTION
+#warning "AnalogButtons: AVR target detected — only one AnalogButtons instance is supported per sketch."
 static uint8_t* _g_states = nullptr;
 static uint8_t _sf0() { return _g_states[0]; }
 static uint8_t _sf1() { return _g_states[1]; }
@@ -27,9 +28,10 @@ static _SlotFn _g_fns[ABS_MAX_BUTTONS] = {
 
 /* ----------------------------------------------------- */
 
-AnalogButtons::AnalogButtons(byte pin, bool show_unknown) {
+AnalogButtons::AnalogButtons(byte pin, bool show_unknown, uint16_t tolerance) {
   this->pin = pin;
   this->show_unknown = show_unknown;
+  this->default_tolerance = tolerance;
   memset(states, HIGH, sizeof(states));
 #ifndef BUTTON2_HAS_STD_FUNCTION
   _g_states = states;
@@ -38,13 +40,14 @@ AnalogButtons::AnalogButtons(byte pin, bool show_unknown) {
 
 /* ----------------------------------------------------- */
 
-Button2& AnalogButtons::add(uint16_t value, String id) {
+Button2& AnalogButtons::add(uint16_t value, String id, uint16_t tolerance) {
   if (btn_count >= ABS_MAX_BUTTONS) return buttons[ABS_MAX_BUTTONS - 1];
 
   byte i = btn_count++;
-  values[i] = value;
-  ids[i]    = (id != "") ? id : String(value);
-  states[i] = HIGH;
+  values[i]     = value;
+  tolerances[i] = (tolerance == 0) ? default_tolerance : tolerance;
+  ids[i]        = (id != "") ? id : String(value);
+  states[i]     = HIGH;
 
   // State function must be set BEFORE begin() so begin()'s _getState() call
   // reads HIGH (released) via our function instead of digitalRead(BTN_VIRTUAL_PIN).
@@ -69,14 +72,27 @@ String AnalogButtons::getId(Button2& btn) {
 
 /* ----------------------------------------------------- */
 
+void AnalogButtons::reset() {
+  for (byte i = 0; i < btn_count; i++) {
+    buttons[i].reset();
+    states[i] = HIGH;
+  }
+  btn_count = 0;
+}
+
+byte AnalogButtons::getCount() const { return btn_count; }
+bool AnalogButtons::isFull()  const  { return btn_count >= ABS_MAX_BUTTONS; }
+
+/* ----------------------------------------------------- */
+
 void AnalogButtons::setAnalogReadFunction(AnalogReadFunction f) {
   analog_read_fn = f;
 }
 
 /* ----------------------------------------------------- */
 
-void AnalogButtons::setGlobalClickHandler(CallbackFunction f) {
-  for (byte i = 0; i < btn_count; i++) buttons[i].setClickHandler(f);
+void AnalogButtons::setGlobalChangedHandler(CallbackFunction f) {
+  for (byte i = 0; i < btn_count; i++) buttons[i].setChangedHandler(f);
 }
 
 void AnalogButtons::setGlobalPressedHandler(CallbackFunction f) {
@@ -87,6 +103,30 @@ void AnalogButtons::setGlobalReleasedHandler(CallbackFunction f) {
   for (byte i = 0; i < btn_count; i++) buttons[i].setReleasedHandler(f);
 }
 
+void AnalogButtons::setGlobalTapHandler(CallbackFunction f) {
+  for (byte i = 0; i < btn_count; i++) buttons[i].setTapHandler(f);
+}
+
+void AnalogButtons::setGlobalClickHandler(CallbackFunction f) {
+  for (byte i = 0; i < btn_count; i++) buttons[i].setClickHandler(f);
+}
+
+void AnalogButtons::setGlobalDoubleClickHandler(CallbackFunction f) {
+  for (byte i = 0; i < btn_count; i++) buttons[i].setDoubleClickHandler(f);
+}
+
+void AnalogButtons::setGlobalTripleClickHandler(CallbackFunction f) {
+  for (byte i = 0; i < btn_count; i++) buttons[i].setTripleClickHandler(f);
+}
+
+void AnalogButtons::setGlobalLongClickHandler(CallbackFunction f) {
+  for (byte i = 0; i < btn_count; i++) buttons[i].setLongClickHandler(f);
+}
+
+void AnalogButtons::setGlobalLongClickDetectedHandler(CallbackFunction f) {
+  for (byte i = 0; i < btn_count; i++) buttons[i].setLongClickDetectedHandler(f);
+}
+
 /* ----------------------------------------------------- */
 
 void AnalogButtons::loop() {
@@ -94,7 +134,7 @@ void AnalogButtons::loop() {
   bool found = false;
 
   for (byte i = 0; i < btn_count; i++) {
-    if (abs((int)reading - (int)values[i]) < ABS_VALUE_RANGE) {
+    if (abs((int32_t)reading - (int32_t)values[i]) < tolerances[i]) {
       states[i] = LOW;
       found = true;
     } else {

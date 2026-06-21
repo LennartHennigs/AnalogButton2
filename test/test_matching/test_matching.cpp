@@ -28,7 +28,7 @@ void resetMatchVars() {
 
 /////////////////////////////////////////////////////////////////
 
-test(matching, exact_value_triggers_button) {
+test(test_matching, exact_value_triggers_button) {
   resetMatchVars();
   AnalogButtons btns = createTestButtons();
   btns.add(BTN_A_VALUE, "A").setClickHandler([](Button2& b) { btnA_fired = true; });
@@ -44,7 +44,7 @@ test(matching, exact_value_triggers_button) {
 
 /////////////////////////////////////////////////////////////////
 
-test(matching, value_within_range_triggers) {
+test(test_matching, value_within_range_triggers) {
   resetMatchVars();
   AnalogButtons btns = createTestButtons();
   btns.add(BTN_A_VALUE, "A").setClickHandler([](Button2& b) { btnA_fired = true; });
@@ -59,7 +59,7 @@ test(matching, value_within_range_triggers) {
 
 /////////////////////////////////////////////////////////////////
 
-test(matching, value_at_range_boundary_does_not_trigger) {
+test(test_matching, value_at_range_boundary_does_not_trigger) {
   resetMatchVars();
   AnalogButtons btns = createTestButtons();
   btns.add(BTN_A_VALUE, "A").setClickHandler([](Button2& b) { btnA_fired = true; });
@@ -74,7 +74,7 @@ test(matching, value_at_range_boundary_does_not_trigger) {
 
 /////////////////////////////////////////////////////////////////
 
-test(matching, unregistered_value_fires_no_button) {
+test(test_matching, unregistered_value_fires_no_button) {
   resetMatchVars();
   AnalogButtons btns = createTestButtons();
   btns.add(BTN_A_VALUE, "A").setClickHandler([](Button2& b) { btnA_fired = true; });
@@ -91,7 +91,7 @@ test(matching, unregistered_value_fires_no_button) {
 
 /////////////////////////////////////////////////////////////////
 
-test(matching, correct_button_selected_among_multiple) {
+test(test_matching, correct_button_selected_among_multiple) {
   resetMatchVars();
   AnalogButtons btns = createTestButtons();
   btns.add(BTN_A_VALUE, "A").setClickHandler([](Button2& b) { btnA_fired = true; });
@@ -107,7 +107,7 @@ test(matching, correct_button_selected_among_multiple) {
 
 /////////////////////////////////////////////////////////////////
 
-test(matching, zero_reading_does_not_trigger) {
+test(test_matching, zero_reading_does_not_trigger) {
   resetMatchVars();
   AnalogButtons btns = createTestButtons();
   btns.add(BTN_A_VALUE, "A").setClickHandler([](Button2& b) { btnA_fired = true; });
@@ -122,6 +122,57 @@ test(matching, zero_reading_does_not_trigger) {
   btns.loop();
 
   assertFalse(btnA_fired);
+}
+
+/////////////////////////////////////////////////////////////////
+
+test(test_matching, constructor_tolerance_widens_window) {
+  resetMatchVars();
+  // Use a wider tolerance of 20
+  AnalogButtons btns(TEST_PIN, false, 20);
+  btns.setAnalogReadFunction(mockAnalogRead);
+  btns.add(BTN_A_VALUE, "A").setClickHandler([](Button2& b) { btnA_fired = true; });
+
+  // Distance 15 is within tolerance=20 but outside default ABS_VALUE_RANGE=10
+  clickAnalog(btns, BTN_A_VALUE + 15);
+  delay(BTN_DOUBLECLICK_MS);
+  btns.loop();
+
+  assertTrue(btnA_fired);
+}
+
+/////////////////////////////////////////////////////////////////
+
+test(test_matching, per_button_tolerance_overrides_default) {
+  resetMatchVars();
+  AnalogButtons btns = createTestButtons();  // default tolerance = ABS_VALUE_RANGE (10)
+  // Give button A a wider tolerance of 25
+  btns.add(BTN_A_VALUE, "A", 25).setClickHandler([](Button2& b) { btnA_fired = true; });
+  btns.add(BTN_B_VALUE, "B").setClickHandler([](Button2& b) { btnB_fired = true; });
+
+  // Distance 20: within A's tolerance (25) but not B's default (10)
+  clickAnalog(btns, BTN_A_VALUE + 20);
+  delay(BTN_DOUBLECLICK_MS);
+  btns.loop();
+
+  assertTrue(btnA_fired);
+  assertFalse(btnB_fired);
+}
+
+/////////////////////////////////////////////////////////////////
+
+test(test_matching, per_button_tolerance_zero_inherits_default) {
+  resetMatchVars();
+  AnalogButtons btns = createTestButtons();  // default tolerance = ABS_VALUE_RANGE (10)
+  // tolerance=0 means inherit default (10)
+  btns.add(BTN_A_VALUE, "A", 0).setClickHandler([](Button2& b) { btnA_fired = true; });
+
+  // Distance 9 is within the default ABS_VALUE_RANGE=10
+  clickAnalog(btns, BTN_A_VALUE + 9);
+  delay(BTN_DOUBLECLICK_MS);
+  btns.loop();
+
+  assertTrue(btnA_fired);
 }
 
 /////////////////////////////////////////////////////////////////

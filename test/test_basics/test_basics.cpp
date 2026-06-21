@@ -17,7 +17,7 @@ using namespace aunit;
 
 /////////////////////////////////////////////////////////////////
 
-test(basics, add_returns_button2_reference) {
+test(test_basics, add_returns_button2_reference) {
   AnalogButtons btns = createTestButtons();
   Button2& b = btns.add(BTN_A_VALUE, "A");
   // BTN_VIRTUAL_PIN = 254
@@ -26,7 +26,7 @@ test(basics, add_returns_button2_reference) {
 
 /////////////////////////////////////////////////////////////////
 
-test(basics, get_id_returns_label) {
+test(test_basics, get_id_returns_label) {
   AnalogButtons btns = createTestButtons();
   btns.add(BTN_A_VALUE, "LEFT");
   btns.add(BTN_B_VALUE, "RIGHT");
@@ -42,7 +42,7 @@ test(basics, get_id_returns_label) {
 
 /////////////////////////////////////////////////////////////////
 
-test(basics, get_id_falls_back_to_value_string) {
+test(test_basics, get_id_falls_back_to_value_string) {
   AnalogButtons btns = createTestButtons();
   Button2& b = btns.add(BTN_A_VALUE);
   assertEqual(btns.getId(b), String(BTN_A_VALUE));
@@ -50,7 +50,7 @@ test(basics, get_id_falls_back_to_value_string) {
 
 /////////////////////////////////////////////////////////////////
 
-test(basics, multiple_buttons_registered) {
+test(test_basics, multiple_buttons_registered) {
   AnalogButtons btns = createTestButtons();
   btns.add(BTN_A_VALUE, "A");
   btns.add(BTN_B_VALUE, "B");
@@ -61,7 +61,7 @@ test(basics, multiple_buttons_registered) {
 
 /////////////////////////////////////////////////////////////////
 
-test(basics, max_buttons) {
+test(test_basics, max_buttons) {
   AnalogButtons btns = createTestButtons();
   for (int i = 0; i < ABS_MAX_BUTTONS; i++) {
     btns.add((uint16_t)(50 + i * 90), String(i));
@@ -71,13 +71,69 @@ test(basics, max_buttons) {
 
 /////////////////////////////////////////////////////////////////
 
-test(basics, overflow_beyond_max_buttons_does_not_crash) {
+test(test_basics, overflow_beyond_max_buttons_does_not_crash) {
   AnalogButtons btns = createTestButtons();
   for (int i = 0; i <= ABS_MAX_BUTTONS; i++) {  // one over the limit
     btns.add((uint16_t)(50 + i * 50), String(i));
   }
   // If we reach here without a crash or memory corruption, the guard worked.
   assertTrue(true);
+}
+
+/////////////////////////////////////////////////////////////////
+
+test(test_basics, get_count_tracks_registrations) {
+  AnalogButtons btns = createTestButtons();
+  assertEqual(btns.getCount(), (byte)0);
+  btns.add(BTN_A_VALUE, "A");
+  assertEqual(btns.getCount(), (byte)1);
+  btns.add(BTN_B_VALUE, "B");
+  assertEqual(btns.getCount(), (byte)2);
+}
+
+/////////////////////////////////////////////////////////////////
+
+test(test_basics, is_full_false_when_space_available) {
+  AnalogButtons btns = createTestButtons();
+  assertFalse(btns.isFull());
+}
+
+/////////////////////////////////////////////////////////////////
+
+test(test_basics, is_full_true_at_capacity) {
+  AnalogButtons btns = createTestButtons();
+  for (int i = 0; i < ABS_MAX_BUTTONS; i++) {
+    btns.add((uint16_t)(50 + i * 90), String(i));
+  }
+  assertTrue(btns.isFull());
+}
+
+/////////////////////////////////////////////////////////////////
+
+test(test_basics, reset_clears_all_buttons) {
+  AnalogButtons btns = createTestButtons();
+  btns.add(BTN_A_VALUE, "A");
+  btns.add(BTN_B_VALUE, "B");
+  assertEqual(btns.getCount(), (byte)2);
+  btns.reset();
+  assertEqual(btns.getCount(), (byte)0);
+  assertFalse(btns.isFull());
+}
+
+/////////////////////////////////////////////////////////////////
+
+test(test_basics, add_after_reset_works) {
+  static bool fired = false;
+  AnalogButtons btns = createTestButtons();
+  btns.add(BTN_A_VALUE, "A");
+  btns.reset();
+  btns.add(BTN_B_VALUE, "B").setClickHandler([](Button2& b) { fired = true; });
+
+  clickAnalog(btns, BTN_B_VALUE);
+  delay(BTN_DOUBLECLICK_MS);
+  btns.loop();
+
+  assertTrue(fired);
 }
 
 /////////////////////////////////////////////////////////////////

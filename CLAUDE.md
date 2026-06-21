@@ -19,6 +19,8 @@ Key design decisions:
 - In `add()`, `setButtonStateFunction` must be called **before** `begin()` so that Button2's initial `_getState()` call inside `begin()` reads `HIGH` (released) via our function rather than `digitalRead(BTN_VIRTUAL_PIN)`, which returns `LOW` (pressed) in EpoxyDuino and causes spurious press/release events.
 - `show_unknown` mode prints unrecognised readings to `Serial` — useful for calibrating button values.
 - Button values and analog readings are `uint16_t`, covering the full 0–1023 range returned by `analogRead()`.
+- On AVR (no `std::function`), only one `AnalogButtons` instance is supported — a second instance overwrites the shared `_g_states` array and breaks the first. ESP8266/ESP32 support multiple instances via capturing lambdas.
+- `setGlobalClickHandler()`, `setGlobalPressedHandler()`, `setGlobalReleasedHandler()` — apply a single callback to all registered buttons at once.
 
 ## Development
 
@@ -29,6 +31,9 @@ Tests use [EpoxyDuino](https://github.com/bxparks/EpoxyDuino) + [AUnit](https://
 ```bash
 # Run all suites
 pio test -e epoxy-esp8266 -v
+
+# Run all suites simulating ESP32 target
+pio test -e epoxy-esp32 -v
 
 # Run one suite
 pio test -e test_basics -v

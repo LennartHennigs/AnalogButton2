@@ -21,9 +21,11 @@ class AnalogButtons {
   private:
     byte pin;
     bool show_unknown = false;
+    uint16_t default_tolerance;
 
     Button2  buttons[ABS_MAX_BUTTONS];
     uint16_t values[ABS_MAX_BUTTONS];
+    uint16_t tolerances[ABS_MAX_BUTTONS];
     String   ids[ABS_MAX_BUTTONS];
     uint8_t  states[ABS_MAX_BUTTONS];
     byte     btn_count = 0;
@@ -38,15 +40,28 @@ class AnalogButtons {
     AnalogReadFunction analog_read_fn = BUTTON2_NULL;
 
   public:
-    AnalogButtons(byte pin, bool show_unknown = false);
-    Button2& add(uint16_t value, String id = "");
-    String   getId(Button2& btn);
+    AnalogButtons(byte pin, bool show_unknown = false, uint16_t tolerance = ABS_VALUE_RANGE);
+
+    // tolerance = 0 inherits the constructor default
+    Button2& add(uint16_t value, String id = "", uint16_t tolerance = 0);
+
+    String getId(Button2& btn);
+
+    void reset();
+    byte getCount() const;
+    bool isFull() const;
 
     void setAnalogReadFunction(AnalogReadFunction f);
 
-    void setGlobalClickHandler(CallbackFunction f);
+    void setGlobalChangedHandler(CallbackFunction f);
     void setGlobalPressedHandler(CallbackFunction f);
     void setGlobalReleasedHandler(CallbackFunction f);
+    void setGlobalTapHandler(CallbackFunction f);
+    void setGlobalClickHandler(CallbackFunction f);
+    void setGlobalDoubleClickHandler(CallbackFunction f);
+    void setGlobalTripleClickHandler(CallbackFunction f);
+    void setGlobalLongClickHandler(CallbackFunction f);
+    void setGlobalLongClickDetectedHandler(CallbackFunction f);
 
     void loop();
 };

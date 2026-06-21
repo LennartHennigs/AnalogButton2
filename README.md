@@ -60,7 +60,23 @@ void clickHandler(Button2& btn) {
 }
 ```
 
-`add()` returns a `Button2&`, so you can chain any Button2 handler — `setDoubleClickHandler()`, `setLongClickHandler()`, `setLongClickDetectedHandler()`, etc. — directly on the returned reference.
+`add()` returns a `Button2&`, so you can chain any Button2 handler directly on the returned reference:
+
+| Handler | Fires when… |
+|---------|-------------|
+| `setTapHandler(f)` | Any press — immediately on release, ignoring multi-click timing |
+| `setClickHandler(f)` | Single click confirmed (slight delay to rule out double/triple) |
+| `setDoubleClickHandler(f)` | Double click |
+| `setTripleClickHandler(f)` | Triple click |
+| `setLongClickDetectedHandler(f)` | Long press threshold reached (button still held) |
+| `setLongClickHandler(f)` | Long press confirmed after release |
+| `setPressedHandler(f)` | Button goes down |
+| `setReleasedHandler(f)` | Button goes up |
+| `setChangedHandler(f)` | Any state change |
+
+> **Tip:** Use `setTapHandler()` or `setLongClickDetectedHandler()` when you need immediate feedback. `setClickHandler()` waits briefly to confirm no double-click follows.
+
+For retriggerable long press, call `setLongClickDetectedRetriggerable(true)` on the returned `Button2&`; `getLongClickCount()` gives you the repeat count.
 
 You can also register a handler for all buttons at once:
 
@@ -68,19 +84,43 @@ You can also register a handler for all buttons at once:
 btns.setGlobalClickHandler(clickHandler);
 ```
 
+### Timeouts
+
+Button2 defaults (in ms): debounce `50`, long-click `200`, double-click `300`. Override per button:
+
+```cpp
+btns.add(42, "CENTER")
+    .setDoubleClickTime(400)
+    .setLongClickTime(500)
+    .setClickHandler(clickHandler);
+```
+
+### wasPressedFor()
+
+Returns the duration of the **most recent individual press**, not cumulative. For a double-click (50 ms + 80 ms), `wasPressedFor()` returns `80`.
+
 
 API
 ---
 
 | Method | Description |
 |--------|-------------|
-| `AnalogButtons(byte pin, bool show_unknown = false)` | Constructor. `show_unknown` prints raw readings for unregistered presses to Serial. |
-| `Button2& add(uint16_t value, String id = "")` | Register a button at the given ADC value. Returns `Button2&` for chaining handlers. |
+| `AnalogButtons(byte pin, bool show_unknown = false, uint16_t tolerance = 10)` | Constructor. `tolerance` sets the default ADC match window (±value). |
+| `Button2& add(uint16_t value, String id = "", uint16_t tolerance = 0)` | Register a button. `tolerance = 0` inherits the constructor default. Returns `Button2&` for chaining. |
 | `String getId(Button2& btn)` | Retrieve the string label for a button inside a callback. |
+| `void reset()` | Clear all registered buttons; the object can be re-used with new `add()` calls. |
+| `byte getCount() const` | Number of currently registered buttons. |
+| `bool isFull() const` | `true` when the 10-button limit is reached. |
 | `void setAnalogReadFunction(f)` | Inject a custom ADC reader (used by the test suite; replaces `analogRead`). |
-| `void setGlobalClickHandler(f)` | Set the same click handler on all registered buttons. |
+| `void setGlobalChangedHandler(f)` | Set the same changed handler on all registered buttons. |
 | `void setGlobalPressedHandler(f)` | Set the same pressed handler on all registered buttons. |
 | `void setGlobalReleasedHandler(f)` | Set the same released handler on all registered buttons. |
+| `void setGlobalTapHandler(f)` | Set the same tap handler on all registered buttons. |
+| `void setGlobalClickHandler(f)` | Set the same click handler on all registered buttons. |
+| `void setGlobalDoubleClickHandler(f)` | Set the same double-click handler on all registered buttons. |
+| `void setGlobalTripleClickHandler(f)` | Set the same triple-click handler on all registered buttons. |
+| `void setGlobalLongClickHandler(f)` | Set the same long-click handler on all registered buttons. |
+| `void setGlobalLongClickDetectedHandler(f)` | Set the same long-click-detected handler on all registered buttons. |
 | `void loop()` | Call this in your Arduino `loop()`. Reads the pin and drives Button2 state machines. |
 
 

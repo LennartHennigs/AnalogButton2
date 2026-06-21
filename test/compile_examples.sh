@@ -332,7 +332,7 @@ main() {
     done
 
     cd "$(dirname "$0")"
-    mapfile -t EXAMPLES < <(find "$EXAMPLES_DIR" -name "*.ino" -exec dirname {} \; | sort -u)
+    while IFS= read -r line; do EXAMPLES+=("$line"); done < <(find "$EXAMPLES_DIR" -name "*.ino" -exec dirname {} \; | sort -u)
 
     print_status "INFO" "Using build tool: $use_tool"
     [[ -n "$platform" ]] && print_status "INFO" "Testing selected platform: $platform"
