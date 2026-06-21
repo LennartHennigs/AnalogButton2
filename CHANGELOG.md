@@ -5,6 +5,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [2.1.0] - 2026-06-21
+
 ### Fixed
 
 - `setGlobal*Handler()` now applies to buttons registered **both before and after** the call. Previously the handler was only wired to buttons already in `[0, btn_count)` at call time; subsequent `add()` calls were silently skipped.
@@ -16,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Breaking:** `add()` third parameter sentinel changed — `tolerance = 0` now means **exact match** (no ADC jitter allowed). To inherit the instance default, omit the argument or pass `ABS_INHERIT_TOLERANCE`. Sketches that previously passed `0` to inherit the default must be updated to omit the argument.
+- `add()` third parameter sentinel changed — `tolerance = 0` now means **exact match** (no ADC jitter allowed). To inherit the instance default, omit the argument or pass `ABS_INHERIT_TOLERANCE`. Sketches that previously passed `0` to inherit the default must be updated to omit the argument.
 
 ## [2.0.0] - 2026-06-21
 
