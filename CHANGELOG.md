@@ -5,6 +5,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Internal
+
+- `reset()` now zeros `btn_count` after the loop rather than before, removing a redundant local variable that implied interrupt-safety concerns not applicable on single-threaded Arduino.
+- Collapsed a redundant second `AnalogButton2` instance in `per_button_tolerance_zero_means_exact_match` test — negative case now reuses the existing instance.
+
 ## [2.1.0] - 2026-06-21
 
 ### Fixed

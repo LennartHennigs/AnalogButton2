@@ -204,13 +204,11 @@ test(test_matching, per_button_tolerance_zero_means_exact_match) {
   btns.loop();
   assertTrue(btnA_fired);
 
-  // One count away does not fire
-  resetMatchVars();
-  AnalogButton2 btns2 = createTestButtons();
-  btns2.add(BTN_A_VALUE, "A", 0)->setClickHandler([](Button2& b) { btnA_fired = true; });
-  clickAnalog(btns2, BTN_A_VALUE + 1);
+  // One count away does not fire — reuse btns, just reset the flag
+  btnA_fired = false;
+  clickAnalog(btns, BTN_A_VALUE + 1);
   delay(BTN_DOUBLECLICK_MS);
-  btns2.loop();
+  btns.loop();
   assertFalse(btnA_fired);
 }
 

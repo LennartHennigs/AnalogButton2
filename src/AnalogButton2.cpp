@@ -130,15 +130,14 @@ String AnalogButton2::getId(Button2& btn) {
 /* ----------------------------------------------------- */
 
 void AnalogButton2::reset() {
-  byte count = btn_count;
-  btn_count = 0;
-  for (byte i = 0; i < count; i++) {
+  for (byte i = 0; i < btn_count; i++) {
     buttons[i].reset();
     buttons[i].setDebounceTime(BTN_DEBOUNCE_MS);
     buttons[i].setLongClickTime(BTN_LONGCLICK_MS);
     buttons[i].setDoubleClickTime(BTN_DOUBLECLICK_MS);
     states[i] = HIGH;
   }
+  btn_count = 0;
 }
 
 byte AnalogButton2::getCount() const { return btn_count; }

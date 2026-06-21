@@ -21,7 +21,11 @@ If $ARGUMENTS is provided, use that as the new version. Otherwise:
 
 ## Step 2: Update version files
 
-Update the version number in `library.properties` — the `version=` line.
+Update the version number in **both** version files:
+- `library.properties` — the `version=` line
+- `library.json` — the `"version":` field
+
+Both must be updated before committing, or `pio pkg publish` will attempt to publish the old version and fail.
 
 ## Step 3: Finalize CHANGELOG
 
@@ -32,7 +36,7 @@ In `CHANGELOG.md`:
 ## Step 4: Commit, tag, push
 
 ```bash
-git add library.properties CHANGELOG.md
+git add library.properties library.json CHANGELOG.md
 git commit -m "chore: release vX.Y.Z"
 git tag vX.Y.Z
 git push && git push --tags
